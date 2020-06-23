@@ -19,6 +19,7 @@
   ff = only
 [commit]
   template = ~/.gitmessage
+	gpgsign = true
 [fetch]
   prune = true
 [rebase]
@@ -27,3 +28,5 @@
   path = ~/.gitconfig.local
 [diff]
   colorMoved = zebra
+[gpg]
+	program = gpg2
