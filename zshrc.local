@@ -1,6 +1,6 @@
-alias vim='MIX_ENV=test LAVENDER_ENV=test nvim'
-alias vi='MIX_ENV=test LAVENDER_ENV=test nvim'
-alias v='MIX_ENV=test LAVENDER_ENV=test nvim'
+alias vim='MIX_ENV=test nvim'
+alias vi='MIX_ENV=test nvim'
+alias v='MIX_ENV=test nvim'
 
 export ASDF_DATA_DIR="$HOME/.asdf"
 export PATH="${ASDF_DATA_DIR}/shims:$PATH"
@@ -13,11 +13,11 @@ export PATH="$HOME/.bin:$PATH"
 
 eval "$(direnv hook zsh)"
 
-export PATH="$PATH:/opt/homebrew/Cellar/rabbitmq/3.11.2/sbin/"
+export PATH="$PATH:$(brew --prefix rabbitmq 2>/dev/null)/sbin"
 
 export ASDF_GOLANG_MOD_VERSION_ENABLED=true
 
-export PATH="$PATH:$GOPATH/bin"
+export PATH="$PATH:$(go env GOPATH)/bin"
 
 # fortify files path
 export PATH="$PATH:/Users/jsmith/Downloads/Fortify_ScanCentral_Client_22.2.1_x64/bin"

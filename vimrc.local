@@ -103,10 +103,7 @@ let g:ale_linters = {
 let g:ale_fixers = {
       \  '*': ['remove_trailing_lines', 'trim_whitespace'],
       \  'javascript': ['eslint'],
-      \  'typescript': ['esling'],
-      \  'css': ['eslint'],
-      \  'html': ['eslint'],
-      \  'ruby': ['eslint'],
+      \  'typescript': ['eslint'],
       \  'elixir': ['mix_format'],
       \}
 
