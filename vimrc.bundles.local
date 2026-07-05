@@ -1,9 +1,0 @@
-Plug 'nanotech/jellybeans.vim'
-Plug 'tpope/vim-markdown'
-Plug 'preservim/vimux'
-Plug 'christoomey/vim-tmux-navigator'
-Plug 'mattn/gist-vim'
-Plug 'maxmellon/vim-jsx-pretty'
-Plug 'peitalin/vim-jsx-typescript'
-Plug 'leafgarland/typescript-vim'
-Plug 'styled-components/vim-styled-components', { 'branch': 'main' }
