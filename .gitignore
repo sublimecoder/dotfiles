@@ -1,0 +1,4 @@
+!bin
+vim/bundle/
+tmp/
+.DS_Store
