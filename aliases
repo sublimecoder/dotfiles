@@ -1,3 +1,26 @@
+# Unix
+alias ll="ls -al"
+alias ln="ln -v"
+alias mkdir="mkdir -p"
+alias e="$EDITOR"
+alias v="$VISUAL"
+
+# Bundler
+alias b="bundle"
+
+# Rails
+alias migrate="bin/rails db:migrate db:rollback && bin/rails db:migrate db:test:prepare"
+alias s="rspec"
+
+# Pretty print the path
+alias path='echo -e ${PATH//:/\\n}'
+
+# Easier navigation: ..., ...., ....., and -
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias .....="cd ../../../.."
+alias -- -="cd -"
+
 # alias todo='$EDITOR ~/.todo'
 
 alias a='ls -lrthG'
@@ -5,11 +28,10 @@ alias aios='cd ~/code/aios-vault && git pull --ff-only -q; claude'
 alias -g G='| grep'
 alias -g L='| less'
 alias -g M='| more'
-alias aliases='vim ~/.aliases.local'
+alias aliases='vim ~/.aliases'
 alias amend="git commit --amend"
 alias c='cd'
 alias d='cd ~/dotfiles'
-alias dl='cd ~/dotfiles-local'
 alias dbprep='rdm && rdtp'
 alias todo='vim ~/code/Notes/todo.md'
 alias start='vim ~/code/Notes/day-start-checklist.md'
