@@ -1,3 +1,9 @@
+if [ -x /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -x /usr/local/bin/brew ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+
 # load custom executable functions
 for function in ~/.zsh/functions/*; do
   source $function
@@ -34,37 +40,19 @@ _load_settings() {
 }
 _load_settings "$HOME/.zsh/configs"
 
-if [ -x /opt/homebrew/bin/brew ]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [ -x /usr/local/bin/brew ]; then
-  eval "$(/usr/local/bin/brew shellenv)"
-fi
-
-export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-
 alias vim='MIX_ENV=test nvim'
 alias vi='MIX_ENV=test nvim'
 alias v='MIX_ENV=test nvim'
 
-export ASDF_DATA_DIR="$HOME/.asdf"
-export PATH="${ASDF_DATA_DIR}/shims:$PATH"
-
-export PATH="/opt/homebrew/bin:$PATH"
-export PATH="/opt/homebrew/sbin:$PATH"
 export PATH="/Users/jsmith/.emacs.d/bin:$PATH"
 
 export PATH="$HOME/.bin:$PATH"
 
 eval "$(direnv hook zsh)"
 
-export PATH="$PATH:$(brew --prefix rabbitmq 2>/dev/null)/sbin"
-
-export ASDF_GOLANG_MOD_VERSION_ENABLED=true
+[ -d /opt/homebrew/opt/rabbitmq/sbin ] && export PATH="$PATH:/opt/homebrew/opt/rabbitmq/sbin"
 
 export PATH="$PATH:$(go env GOPATH)/bin"
-
-# fortify files path
-export PATH="$PATH:/Users/jsmith/Downloads/Fortify_ScanCentral_Client_22.2.1_x64/bin"
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/Users/jsmith/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/jsmith/google-cloud-sdk/path.zsh.inc'; fi

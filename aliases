@@ -91,7 +91,7 @@ alias repry='fc -e - mix\ test=iex\ -S\ mix\ test\ --trace mix\ test'
 alias gup="go get -u ./..."
 alias gup-tests="go get -t -u ./..."
 alias glist="go list -u -m all"
-alias go-packages='cd "$(asdf where golang)/packages"'
+alias go-packages='cd "$(mise where golang)/packages"'
 alias gts="gotestsum"
 alias go-test="go test -v ./..."
 alias killGO='lsof -t -i :5000 | xargs kill -9'
