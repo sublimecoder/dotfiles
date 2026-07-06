@@ -18,7 +18,7 @@ link() {
 # Top-level dotfiles -> ~/.<name>
 for f in *; do
   case "$f" in
-    README.md|install.sh|.gitignore|.git|.DS_Store) continue ;;
+    README.md|install.sh|Brewfile|.gitignore|.git|.DS_Store) continue ;;
   esac
   [ -d "$f" ] && continue
   link "$DOTFILES_DIR/$f" "$HOME/.$f"
@@ -32,6 +32,10 @@ for dir in bin zsh vim git_template; do
     link "$DOTFILES_DIR/$file" "$HOME/.$dir/$rel"
   done < <(find "$dir" -type f -not -name '.DS_Store' -print0)
 done
+
+if command -v brew >/dev/null; then
+  brew bundle install --file="$DOTFILES_DIR/Brewfile"
+fi
 
 echo
 echo "Done. If this is a fresh machine, also run:"
