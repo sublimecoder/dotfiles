@@ -66,6 +66,8 @@ brew "reattach-to-user-namespace"
 brew "redis", restart_service: :changed
 # Search tool like grep and The Silver Searcher
 brew "ripgrep"
+# Static analysis and lint tool, for (ba)sh scripts
+brew "shellcheck"
 # HTTP regression testing and benchmarking utility
 brew "siege"
 # Tool which checks for the support of TLS/SSL ciphers and flaws
