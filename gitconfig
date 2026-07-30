@@ -31,10 +31,14 @@
   colorMoved = zebra
 [gpg]
 	program = gpg2
+	format = ssh
 [pretty]
   colored = format:%Cred%h%Creset %s %Cgreen(%cr) %C(bold blue)%an%Creset
 [user]
   name = Jared Smith
   email = jared.smith88@me.com
+	signingkey = /Users/jsmith/.ssh/id_ed25519.pub
 [heroku]
 	account = personal
+[gpg "ssh"]
+	allowedSignersFile = /Users/jsmith/.ssh/allowed_signers

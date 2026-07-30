@@ -27,3 +27,15 @@
 
 # Personal AIOS work-layer pointer (local only)
 CLAUDE.local.md
+
+# impeccable-hook-ignore-start priv/content/posts
+priv/content/posts/.impeccable/hook.cache.json
+priv/content/posts/.impeccable/hook.pending.json
+priv/content/posts/.impeccable/config.local.json
+# impeccable-hook-ignore-end priv/content/posts
+
+# impeccable-hook-ignore-start priv/static/images/gallery
+priv/static/images/gallery/.impeccable/hook.cache.json
+priv/static/images/gallery/.impeccable/hook.pending.json
+priv/static/images/gallery/.impeccable/config.local.json
+# impeccable-hook-ignore-end priv/static/images/gallery
