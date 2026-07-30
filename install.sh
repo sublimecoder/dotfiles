@@ -25,7 +25,7 @@ for f in *; do
 done
 
 # Directory trees, mirrored file-by-file under ~/.<dir>/...
-for dir in bin zsh vim git_template; do
+for dir in bin zsh vim git_template claude; do
   [ -d "$dir" ] || continue
   while IFS= read -r -d '' file; do
     rel="${file#"$dir"/}"
