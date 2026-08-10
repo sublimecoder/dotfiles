@@ -39,3 +39,15 @@ priv/static/images/gallery/.impeccable/hook.cache.json
 priv/static/images/gallery/.impeccable/hook.pending.json
 priv/static/images/gallery/.impeccable/config.local.json
 # impeccable-hook-ignore-end priv/static/images/gallery
+
+# impeccable-hook-ignore-start priv/static/fonts
+priv/static/fonts/.impeccable/hook.cache.json
+priv/static/fonts/.impeccable/hook.pending.json
+priv/static/fonts/.impeccable/config.local.json
+# impeccable-hook-ignore-end priv/static/fonts
+
+# impeccable-hook-ignore-start .playwright-mcp
+.playwright-mcp/.impeccable/hook.cache.json
+.playwright-mcp/.impeccable/hook.pending.json
+.playwright-mcp/.impeccable/config.local.json
+# impeccable-hook-ignore-end .playwright-mcp
