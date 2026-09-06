@@ -1,0 +1,19 @@
+# Arch packages this config expects, beyond what Omarchy already installs.
+# Install with:  sudo pacman -S --needed - < linux/packages.txt
+# (install.sh only REPORTS what is missing; it never installs unasked.)
+
+# NOTE: zsh is deliberately NOT here. This machine runs Omarchy's default bash
+# everywhere -- see docs/shell-decision.md. The Mac keeps zsh.
+
+# Used by shared/zshrc and the aliases.
+direnv
+fzf
+
+# Wayland clipboard, the pbcopy/pbpaste equivalent.
+wl-clipboard
+
+# NOT a package: shasum ships with core `perl` (verified with
+# `pacman -Qo /usr/bin/core_perl/shasum`), which Arch already installs. An
+# earlier version of this file listed `perl-Digest-SHA` -- that is the Debian
+# and Homebrew spelling and `pacman -S` fails with "target not found". The only
+# thing needed on Arch is /usr/bin/core_perl on PATH, which linux.zsh adds.

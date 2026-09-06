@@ -1,0 +1,54 @@
+# Shared zshrc — everything true on BOTH machines.
+#
+# Anything OS-specific lives in macos/zsh/configs/ or linux/zsh/configs/ and is
+# linked into ~/.zsh/configs/ by install.sh, where the loader below already picks
+# it up. There is deliberately no `if [ "$(uname)" = Darwin ]` in this file: the
+# split is done by which files get linked, not by branching at runtime.
+
+# The PORTABLE half -- functions, aliases, PATH, direnv/mise/go -- lives in
+# ~/.shellrc and is shared with bash. Sourced first so zsh-specific config below
+# can override anything in it.
+[ -f "$HOME/.shellrc" ] && . "$HOME/.shellrc"
+
+# zsh-ONLY functions (change-extension uses foreach/glob qualifiers;
+# _git_delete_branch is a completion). The portable ones moved to ~/.shell/.
+for function in ~/.zsh/functions/*; do
+  source $function
+done
+
+# extra files in ~/.zsh/configs/pre , ~/.zsh/configs , and ~/.zsh/configs/post
+# these are loaded first, second, and third, respectively.
+_load_settings() {
+  _dir="$1"
+  if [ -d "$_dir" ]; then
+    if [ -d "$_dir/pre" ]; then
+      for config in "$_dir"/pre/**/*~*.zwc(N-.); do
+        . $config
+      done
+    fi
+
+    for config in "$_dir"/**/*(N-.); do
+      case "$config" in
+        "$_dir"/(pre|post)/*|*.zwc)
+          :
+          ;;
+        *)
+          . $config
+          ;;
+      esac
+    done
+
+    if [ -d "$_dir/post" ]; then
+      for config in "$_dir"/post/**/*~*.zwc(N-.); do
+        . $config
+      done
+    fi
+  fi
+}
+_load_settings "$HOME/.zsh/configs"
+
+alias vim='MIX_ENV=test nvim'
+alias vi='MIX_ENV=test nvim'
+alias v='MIX_ENV=test nvim'
+
+# PATH, aliases, direnv/mise/go, bun and fzf all live in ~/.shellrc now.
