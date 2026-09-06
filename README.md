@@ -31,5 +31,13 @@ git config --global init.templatedir ~/.git_template
 - `tmux.conf` — tmux
 - `bin/` — small personal scripts, put on `$PATH` via `install.sh`
 
+## Shell
+
+Login shell is **bash** (Omarchy's default, and its tooling assumes it); the
+terminal launches **zsh**, which is where `zsh/functions/g` and everything in
+`zsh/configs/` lives. Set the terminal's shell, not `chsh`. Full reasoning,
+the per-terminal config lines, and the install-configs-first ordering:
+[`docs/shell-decision.md`](docs/shell-decision.md).
+
 If you want to copy any of this, go ahead — there's no portability layer
 here, it's just what's on this machine.
