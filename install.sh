@@ -53,7 +53,7 @@ link_top() {
 # macos/zsh/configs/macos.zsh sit beside the shared configs at runtime.
 link_tree() {
   local dir="$1" sub rel file
-  for sub in bin zsh vim git_template claude; do
+  for sub in bin shell zsh vim git_template claude; do
     [ -d "$dir/$sub" ] || continue
     while IFS= read -r -d '' file; do
       rel="${file#"$dir/$sub"/}"
@@ -85,6 +85,18 @@ if [ "$OS_DIR" = "linux" ] && [ -f linux/packages.txt ]; then
     echo "Missing packages (${#missing[@]}). Install with:"
     echo "  sudo pacman -S --needed ${missing[*]}"
   fi
+fi
+
+# ~/.bashrc is a REAL file on Omarchy carrying machine-local content (cargo,
+# gcloud), so link() correctly refuses to replace it. Append one source line
+# instead -- idempotent, and reversible by deleting the two lines.
+BASHRC="$HOME/.bashrc"
+MARK="# dotfiles: shell-neutral core (g, aliases, PATH) -- see ~/dotfiles"
+if [ -f "$BASHRC" ] && ! grep -qF "$MARK" "$BASHRC"; then
+  printf '\n%s\n[ -f "$HOME/.shellrc" ] && . "$HOME/.shellrc"\n' "$MARK" >> "$BASHRC"
+  echo "appended shellrc source line to $BASHRC"
+elif [ -f "$BASHRC" ]; then
+  echo "already wired: $BASHRC"
 fi
 
 echo

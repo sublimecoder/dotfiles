@@ -74,9 +74,20 @@ Ghostty is `shell = /usr/bin/zsh` in `~/.config/ghostty/config`; Alacritty is
 **Install the configs before pointing a terminal at zsh.** A terminal set to an
 unconfigured zsh is strictly worse than bash: no `g`, no completions, no prompt.
 
-## Open, if bash stays
+## How bash gets the tooling anyway
 
-`g` and ~59 aliases are portable but reach nothing on this box today — bash reads
-`~/.bashrc`, and this repo ships no bash entry point. Wiring one is a small,
-separate job: source the portable aliases, define `g`, skip the four zsh-only
-lines.
+Closed 2026-09-05. The split that matters is **portable vs not**, not zsh vs bash:
+
+- `shared/shellrc` — the portable core, sourced by both shells. Functions from
+  `~/.shell/functions/` (`g`, `mcd`, `envup`), `~/.aliases`, `PATH`, and guarded
+  `direnv` / `mise` / `go` / `bun` / `fzf`.
+- `shared/zsh/` — only what is genuinely zsh: `change-extension` (uses
+  `foreach` and glob qualifiers), the completions, and `zsh/configs/*`.
+- `shared/aliases` — one file for both shells; the 4 zsh-only lines
+  (`alias -g G/L/M`, `alias -- -`) are wrapped in `if [ -n "$ZSH_VERSION" ]`.
+
+`~/.bashrc` is a real file on Omarchy with machine-local content (cargo,
+gcloud), so `install.sh` **appends** one source line rather than symlinking over
+it — idempotent, and reversible by deleting two lines.
+
+`zshrc` now sources `~/.shellrc` first, then adds the zsh-only half.

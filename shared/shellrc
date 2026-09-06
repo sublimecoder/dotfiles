@@ -1,0 +1,59 @@
+# Shell-neutral core, sourced by BOTH bash and zsh.
+#
+# WHY THIS FILE EXISTS. The Mac runs zsh and Omarchy runs bash (see
+# docs/shell-decision.md), and for a while that meant this repo's tooling reached
+# only one of them. It did not have to: `g` -- 1100 invocations, the most-used
+# thing here -- is `if [[ $# -gt 0 ]]; then git "$@"; else git status; fi`, which
+# is as valid in bash as in zsh. 59 of 63 aliases are likewise portable.
+#
+# So the split is not zsh-vs-bash, it is PORTABLE-vs-NOT. This file is the
+# portable half. zsh-only things stay in ~/.zsh/ and are loaded by zshrc alone.
+#
+# Sourced from shared/zshrc, and from ~/.bashrc via one appended line -- appended
+# rather than symlinked because ~/.bashrc is a real file on Omarchy carrying
+# machine-local content (cargo, gcloud) that must not be clobbered.
+
+# Which shell is this? Needed for the hook helpers below, which take the name.
+if [ -n "$ZSH_VERSION" ]; then
+  _shell_name=zsh
+elif [ -n "$BASH_VERSION" ]; then
+  _shell_name=bash
+else
+  _shell_name=sh
+fi
+
+# Portable functions: g, mcd, envup. Guarded because the directory does not
+# exist until install.sh has run, and an unmatched glob is an ERROR in zsh
+# rather than a silent no-op.
+if [ -d "$HOME/.shell/functions" ]; then
+  for _f in "$HOME"/.shell/functions/*; do
+    [ -f "$_f" ] && . "$_f"
+  done
+  unset _f
+fi
+
+[ -f "$HOME/.aliases" ] && . "$HOME/.aliases"
+
+export PATH="$HOME/.bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
+
+# Guarded: unguarded, `direnv hook` prints an error on EVERY new shell on a box
+# without direnv, and `$(go env GOPATH)` with no go appends an empty PATH element.
+if command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook $_shell_name)"
+fi
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate $_shell_name)"
+fi
+if command -v go >/dev/null 2>&1; then
+  export PATH="$PATH:$(go env GOPATH)/bin"
+fi
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+[ -s "$BUN_INSTALL/_bun" ] && . "$BUN_INSTALL/_bun"
+
+[ -f "$HOME/.fzf.$_shell_name" ] && . "$HOME/.fzf.$_shell_name"
+
+unset _shell_name

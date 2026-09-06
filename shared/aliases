@@ -12,15 +12,21 @@ alias path='echo -e ${PATH//:/\\n}'
 alias ...="cd ../.."
 alias ....="cd ../../.."
 alias .....="cd ../../../.."
-alias -- -="cd -"
+# zsh-only, and guarded so bash can source this same file: bash has no global
+# aliases and cannot alias `-`. Everything else here is portable.
+if [ -n "$ZSH_VERSION" ]; then
+  alias -- -="cd -"
+fi
 
 # alias todo='$EDITOR ~/.todo'
 
 alias a='ls -lrthG'
 alias aios='cd ~/code/aios-vault && git pull --ff-only -q; claude'
-alias -g G='| grep'
-alias -g L='| less'
-alias -g M='| more'
+if [ -n "$ZSH_VERSION" ]; then
+  alias -g G='| grep'
+  alias -g L='| less'
+  alias -g M='| more'
+fi
 alias aliases='$EDITOR ~/.aliases'
 alias amend="git commit --amend"
 alias c='cd'

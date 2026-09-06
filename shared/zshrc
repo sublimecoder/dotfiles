@@ -5,7 +5,13 @@
 # it up. There is deliberately no `if [ "$(uname)" = Darwin ]` in this file: the
 # split is done by which files get linked, not by branching at runtime.
 
-# load custom executable functions
+# The PORTABLE half -- functions, aliases, PATH, direnv/mise/go -- lives in
+# ~/.shellrc and is shared with bash. Sourced first so zsh-specific config below
+# can override anything in it.
+[ -f "$HOME/.shellrc" ] && . "$HOME/.shellrc"
+
+# zsh-ONLY functions (change-extension uses foreach/glob qualifiers;
+# _git_delete_branch is a completion). The portable ones moved to ~/.shell/.
 for function in ~/.zsh/functions/*; do
   source $function
 done
@@ -45,22 +51,4 @@ alias vim='MIX_ENV=test nvim'
 alias vi='MIX_ENV=test nvim'
 alias v='MIX_ENV=test nvim'
 
-export PATH="$HOME/.bin:$PATH"
-export PATH="$HOME/.local/bin:$PATH"
-
-# Guarded because this file is now sourced on a machine that may not have them.
-# Unguarded, `direnv hook zsh` on a box without direnv prints an error on EVERY
-# new shell, and `$(go env GOPATH)` without go puts an empty element on PATH.
-command -v direnv >/dev/null && eval "$(direnv hook zsh)"
-command -v go >/dev/null && export PATH="$PATH:$(go env GOPATH)/bin"
-
-# aliases
-[[ -f ~/.aliases ]] && source ~/.aliases
-
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# bun. Was an absolute /Users/jsmith path; $BUN_INSTALL is the same value and
-# resolves on both machines.
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-[ -s "$BUN_INSTALL/_bun" ] && source "$BUN_INSTALL/_bun"
+# PATH, aliases, direnv/mise/go, bun and fzf all live in ~/.shellrc now.
