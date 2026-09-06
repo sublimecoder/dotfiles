@@ -23,6 +23,9 @@ export PATH="$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator"
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 export PATH="$JAVA_HOME/bin:$PATH"
 
+# Maestro (mobile UI testing) — guarded; installed on the Mac only today.
+[ -d "$HOME/.maestro/bin" ] && export PATH="$PATH:$HOME/.maestro/bin"
+
 # The Obsidian vault lives in iCloud Drive, which only exists on macOS.
 alias vault='cd "$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents" && claude'
 
