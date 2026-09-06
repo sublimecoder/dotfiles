@@ -45,10 +45,10 @@ git config --global init.templatedir ~/.git_template
 
 ## Shell
 
-Login shell is **bash** (Omarchy's default, and its tooling assumes it); the
-terminal launches **zsh**, which is where `zsh/functions/g` and everything in
-`zsh/configs/` lives. Set the terminal's shell, not `chsh`. Full reasoning,
-the per-terminal config lines, and the install-configs-first ordering:
+**Mac: zsh. Omarchy/Arch: bash**, the distribution's default — zsh is not
+installed there and is deliberately absent from `linux/packages.txt`. Nothing is
+`chsh`-ed on either machine. `shared/zsh/` is linked on Linux but simply unused.
+Reasoning, what bash actually costs, and how to reverse it:
 [`docs/shell-decision.md`](docs/shell-decision.md).
 
 If you want to copy any of this, go ahead.

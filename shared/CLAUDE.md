@@ -55,8 +55,10 @@ Arch equivalent and is hand-maintained.
 
 ## Shell
 
-Login shell is bash on both; the terminal launches zsh. Reasoning and the
-per-terminal config lines: `docs/shell-decision.md`. Do not `chsh`.
+Mac runs zsh; Omarchy/Arch runs bash, the distribution's default. zsh is not
+installed on Linux. `shared/zsh/` is linked there and goes unused, which is the
+correct outcome of a shared/ dir — not a bug. Do not `chsh` on either machine.
+Reasoning: `docs/shell-decision.md`.
 
 ## Tooling philosophy
 

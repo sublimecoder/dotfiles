@@ -2,9 +2,8 @@
 # Install with:  sudo pacman -S --needed - < linux/packages.txt
 # (install.sh only REPORTS what is missing; it never installs unasked.)
 
-# The interactive shell. Omarchy ships bash as the login shell and keeps it --
-# see docs/shell-decision.md. zsh is what the terminal launches.
-zsh
+# NOTE: zsh is deliberately NOT here. This machine runs Omarchy's default bash
+# everywhere -- see docs/shell-decision.md. The Mac keeps zsh.
 
 # Used by shared/zshrc and the aliases.
 direnv
