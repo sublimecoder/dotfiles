@@ -56,4 +56,17 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 
 [ -f "$HOME/.fzf.$_shell_name" ] && . "$HOME/.fzf.$_shell_name"
 
+# systemd's ssh-agent.service (Omarchy) does NOT export this itself -- its own
+# unit file says so. A graphical login gets it from elsewhere; a shell spawned
+# by an agent harness does not, so the key sits unlocked in a running agent the
+# shell cannot see and every signed commit dies on ssh_askpass. Guarded twice:
+# only when nothing already set it (ssh -A forwarding wins), and only when the
+# socket is really there -- on the Mac launchd sets its own path and this is a
+# no-op.
+_agent_sock="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.socket"
+if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "$_agent_sock" ]; then
+  export SSH_AUTH_SOCK="$_agent_sock"
+fi
+unset _agent_sock
+
 unset _shell_name
