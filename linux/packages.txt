@@ -1,0 +1,17 @@
+# Arch packages this config expects, beyond what Omarchy already installs.
+# Install with:  sudo pacman -S --needed - < linux/packages.txt
+# (install.sh only REPORTS what is missing; it never installs unasked.)
+
+# The interactive shell. Omarchy ships bash as the login shell and keeps it --
+# see docs/shell-decision.md. zsh is what the terminal launches.
+zsh
+
+# Used by shared/zshrc and the aliases.
+direnv
+fzf
+
+# Wayland clipboard, the pbcopy/pbpaste equivalent.
+wl-clipboard
+
+# shasum, used by the AIOS hooks. Ships as /usr/bin/core_perl/shasum.
+perl-Digest-SHA
