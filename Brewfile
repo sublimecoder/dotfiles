@@ -5,7 +5,6 @@ tap "homebrew/bundle"
 tap "homebrew/services"
 tap "mongodb/brew", trusted: true
 tap "thoughtbot/formulae", trusted: true
-tap "universal-ctags/universal-ctags", trusted: true
 # Official Amazon AWS command-line interface
 brew "awscli"
 # Enables you to reproduce the CircleCI environment locally
@@ -76,8 +75,6 @@ brew "testssl"
 brew "the_silver_searcher"
 # Terminal multiplexer
 brew "tmux"
-# Maintained ctags implementation
-brew "universal-ctags", args: ["HEAD"]
 # Vi 'workalike' with many additional features
 brew "vim"
 # Watch files and take action when they change
