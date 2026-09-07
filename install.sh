@@ -53,7 +53,7 @@ link_top() {
 # macos/zsh/configs/macos.zsh sit beside the shared configs at runtime.
 link_tree() {
   local dir="$1" sub rel file
-  for sub in bin shell zsh vim git_template claude; do
+  for sub in bin shell zsh vim git_template claude config; do
     [ -d "$dir/$sub" ] || continue
     while IFS= read -r -d '' file; do
       rel="${file#"$dir/$sub"/}"

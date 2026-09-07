@@ -103,8 +103,12 @@ brew "mongodb/brew/mongodb-community"
 cask "1password-cli"
 # Tools for building Android applications
 cask "android-studio"
+# Developer-oriented font with ligatures and Nerd Font glyphs
+cask "font-jetbrains-mono-nerd-font"
 # All-in-one toolbox for developers
 cask "devutils"
+# Fast, native, feature-rich terminal emulator
+cask "ghostty"
 # Tools to protect your files
 cask "gpg-suite-no-mail"
 # Reverse proxy, secure introspectable tunnels to localhost
