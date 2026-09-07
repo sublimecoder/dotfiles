@@ -29,6 +29,8 @@ brew "git"
 brew "icu4c@75"
 # Tools and libraries to manipulate images in select formats
 brew "imagemagick"
+# Lightweight and flexible command-line JSON processor
+brew "jq"
 # Modern load testing tool, using Go and JavaScript
 brew "k6"
 # YAML Parser
