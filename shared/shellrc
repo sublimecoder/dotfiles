@@ -63,11 +63,18 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # only when nothing already set it (ssh -A forwarding wins), and only when the
 # socket is really there -- on the Mac launchd sets its own path and this is a
 # no-op.
-_agent_sock="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.socket"
-if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "$_agent_sock" ]; then
-  export SSH_AUTH_SOCK="$_agent_sock"
-fi
-unset _agent_sock
+#
+# gcr/ssh comes first: gcr-ssh-agent keeps the key passphrase in the login
+# keyring, so it survives a reboot, while plain ssh-agent forgets on every boot.
+# The ssh-agent.socket fallback stays for machines where gcr is not set up.
+_xdg_run="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+for _agent_sock in "$_xdg_run/gcr/ssh" "$_xdg_run/ssh-agent.socket"; do
+  if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "$_agent_sock" ]; then
+    export SSH_AUTH_SOCK="$_agent_sock"
+    break
+  fi
+done
+unset _agent_sock _xdg_run
 
 unset _shell_name
 
