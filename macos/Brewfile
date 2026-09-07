@@ -29,6 +29,8 @@ brew "git"
 brew "icu4c@75"
 # Tools and libraries to manipulate images in select formats
 brew "imagemagick"
+# Lightweight and flexible command-line JSON processor
+brew "jq"
 # Modern load testing tool, using Go and JavaScript
 brew "k6"
 # YAML Parser
@@ -101,8 +103,12 @@ brew "mongodb/brew/mongodb-community"
 cask "1password-cli"
 # Tools for building Android applications
 cask "android-studio"
+# Developer-oriented font with ligatures and Nerd Font glyphs
+cask "font-jetbrains-mono-nerd-font"
 # All-in-one toolbox for developers
 cask "devutils"
+# Fast, native, feature-rich terminal emulator
+cask "ghostty"
 # Tools to protect your files
 cask "gpg-suite-no-mail"
 # Reverse proxy, secure introspectable tunnels to localhost

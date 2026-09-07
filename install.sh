@@ -53,7 +53,7 @@ link_top() {
 # macos/zsh/configs/macos.zsh sit beside the shared configs at runtime.
 link_tree() {
   local dir="$1" sub rel file
-  for sub in bin shell zsh vim git_template claude; do
+  for sub in bin shell zsh vim git_template claude config; do
     [ -d "$dir/$sub" ] || continue
     while IFS= read -r -d '' file; do
       rel="${file#"$dir/$sub"/}"
@@ -97,6 +97,26 @@ if [ -f "$BASHRC" ] && ! grep -qF "$MARK" "$BASHRC"; then
   echo "appended shellrc source line to $BASHRC"
 elif [ -f "$BASHRC" ]; then
   echo "already wired: $BASHRC"
+fi
+
+# ~/.claude/settings.json is a REAL file holding machine-local state (plugins,
+# theme, marketplaces), so it cannot be a symlink either. Merge in the one key
+# this repo owns -- the statusline -- and leave an existing one alone, since a
+# hand-edited statusLine is a deliberate override, not stale state.
+CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+if command -v jq >/dev/null; then
+  mkdir -p "$(dirname "$CLAUDE_SETTINGS")"
+  [ -f "$CLAUDE_SETTINGS" ] || echo '{}' > "$CLAUDE_SETTINGS"
+  if jq -e '.statusLine' "$CLAUDE_SETTINGS" >/dev/null; then
+    echo "already wired: statusLine in $CLAUDE_SETTINGS"
+  else
+    tmp="$(mktemp)"
+    jq '.statusLine = {type: "command", command: "~/.claude/hooks/statusline.sh"}' \
+      "$CLAUDE_SETTINGS" > "$tmp" && mv "$tmp" "$CLAUDE_SETTINGS"
+    echo "added statusLine to $CLAUDE_SETTINGS"
+  fi
+else
+  echo "jq missing -- skipped statusLine wiring in $CLAUDE_SETTINGS"
 fi
 
 echo
