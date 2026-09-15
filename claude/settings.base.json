@@ -1,0 +1,65 @@
+{
+  "permissions": { "defaultMode": "auto" },
+  "model": "opus[1m]",
+  "effortLevel": "high",
+  "outputStyle": "Concise",
+  "tui": "fullscreen",
+  "voice": { "enabled": true, "mode": "hold" },
+  "voiceEnabled": true,
+  "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "agentPushNotifEnabled": true,
+  "statusLine": { "type": "command", "command": "bash \"$HOME/.claude/hooks/statusline.sh\"" },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "(AskUserQuestion|mcp__.*__AskUserQuestion)",
+        "hooks": [{ "type": "command", "timeout": 5,
+          "command": "f=\"$HOME/.claude/skills/gstack/hosts/claude/hooks/question-preference-hook\"; [ -x \"$f\" ] || exit 0; exec \"$f\"" }]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command",
+          "command": "f=\"$HOME/.claude/hooks/rtk-rewrite.sh\"; [ -x \"$f\" ] || exit 0; exec \"$f\"" }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "(AskUserQuestion|mcp__.*__AskUserQuestion)",
+        "hooks": [{ "type": "command", "timeout": 5,
+          "command": "f=\"$HOME/.claude/skills/gstack/hosts/claude/hooks/question-log-hook\"; [ -x \"$f\" ] || exit 0; exec \"$f\"" }]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [{ "type": "command", "timeout": 10,
+          "command": "f=\"$HOME/.claude/hooks/herdr-agent-state.sh\"; [ -f \"$f\" ] || exit 0; exec bash \"$f\" session" }]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "caveman@caveman": true,
+    "claude-code-setup@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "claude-seo@agricidaniel-seo": true,
+    "commit-commands@claude-plugins-official": true,
+    "ecto@oliver-kriska": true,
+    "elixir-phoenix@oliver-kriska": true,
+    "linear@claude-plugins-official": true,
+    "lv@oliver-kriska": true,
+    "playwright@claude-plugins-official": true,
+    "ponytail@ponytail": true,
+    "security-guidance@claude-plugins-official": true,
+    "superpowers@superpowers-marketplace": true,
+    "typescript-lsp@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "caveman": { "source": { "source": "github", "repo": "JuliusBrussee/caveman" } },
+    "claude-plugins-official": { "source": { "source": "github", "repo": "anthropics/claude-plugins-official" } },
+    "agricidaniel-seo": { "source": { "source": "github", "repo": "AgriciDaniel/claude-seo" }, "autoUpdate": true },
+    "oliver-kriska": { "source": { "source": "github", "repo": "oliver-kriska/claude-elixir-phoenix" }, "autoUpdate": true },
+    "ponytail": { "source": { "source": "github", "repo": "DietrichGebert/ponytail" }, "autoUpdate": true },
+    "superpowers-marketplace": { "source": { "source": "github", "repo": "obra/superpowers-marketplace" }, "autoUpdate": true }
+  }
+}
