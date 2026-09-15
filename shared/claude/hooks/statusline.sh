@@ -1,5 +1,5 @@
 #!/bin/bash
-# Statusline: model | layer badge | git branch | context % | cost | caveman/ponytail badges.
+# Statusline: model | project badge | git branch | context % | cost | caveman/ponytail badges.
 # Runs on every keystroke — keep it to one jq pass, one awk lookup, two git calls.
 # ponytail: basic 16-color SGR only (30-37/90-97) — the renderer ignores 256-color \033[38;5;Nm.
 input=$(cat)
@@ -26,14 +26,12 @@ if [ -n "$model" ]; then
   esac
 fi
 
-# Identity layer badge via the vault's single manifest reader
-if [ -n "$dir" ]; then
-  layer=$("${AIOS_VAULT:-$HOME/code/aios-vault}/AIOS/Systems/resolve-project.sh" "$dir" 2>/dev/null | awk -F= '/^LAYER=/{print $2}')
-  case "$layer" in
-    creator)      parts+=("$(printf '\033[95m[CREATOR]\033[0m')") ;;
-    professional) parts+=("$(printf '\033[94m[PRO]\033[0m')") ;;
-    work)         parts+=("$(printf '\033[91m[WORK]\033[0m')") ;;
-  esac
+# Optional project badge from a private fragment outside this repo (sourced; sets badge_out)
+badge="${AIOS_VAULT:-$HOME/code/aios-vault}/AIOS/Systems/hooks/statusline-badge.sh"
+if [ -n "$dir" ] && [ -f "$badge" ]; then
+  # shellcheck source=/dev/null
+  . "$badge"
+  [ -n "$badge_out" ] && parts+=("$badge_out")
 fi
 
 # Git branch + dirty star (tracked files only — untracked scan too noisy/slow)
