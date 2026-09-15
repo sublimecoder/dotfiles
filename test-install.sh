@@ -9,6 +9,11 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PASS=0; FAIL=0
 chk() { if [ "$2" = "$3" ]; then PASS=$((PASS+1)); echo "  ok   $1"; else FAIL=$((FAIL+1)); echo "  FAIL $1 (want [$2] got [$3])"; fi; }
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
+# A stub brew on PATH for every install.sh invocation in this file, not just
+# the one under direct test: if the DOTFILES_OFFLINE gate around `brew bundle`
+# ever regresses, this must catch it everywhere, not just in the case that
+# happens to exercise it -- a real `brew bundle install` must never run here.
+mkdir -p "$T/bin"; printf '#!/bin/sh\necho STUB-BREW\n' > "$T/bin/brew"; chmod +x "$T/bin/brew"
 setup() { HOME="$1" DOTFILES_OFFLINE=1 bash "$HERE/claude/setup.sh" 2>&1; }
 BASE="$HERE/claude/settings.base.json"
 
@@ -56,8 +61,6 @@ chk "invalid settings: untouched"         '{"model": ' "$(cat "$H3/.claude/setti
 # A stub vault proves the handoff without touching the real one.
 H4="$T/chain"; mkdir -p "$H4/code/aios-vault/AIOS/Systems"
 printf '#!/bin/sh\necho "stub aios-install $*"\n' > "$H4/code/aios-vault/AIOS/Systems/aios-install.sh"
-# A stub brew on PATH: if install.sh runs brew bundle offline, STUB-BREW shows up.
-mkdir -p "$T/bin"; printf '#!/bin/sh\necho STUB-BREW\n' > "$T/bin/brew"; chmod +x "$T/bin/brew"
 out=$(PATH="$T/bin:$PATH" HOME="$H4" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" 2>&1)
 chk "chain: settings merged via setup.sh"   "opus[1m]" "$(jq -r .model "$H4/.claude/settings.json" 2>/dev/null)"
 chk "chain: vault installer applied"        "1" "$(printf '%s' "$out" | grep -c 'stub aios-install --apply')"
@@ -65,7 +68,7 @@ chk "chain: statusline hook still linked"   "1" "$([ -L "$H4/.claude/hooks/statu
 chk "chain: brew skipped offline"           "0" "$(printf '%s' "$out" | grep -c 'STUB-BREW')"
 
 H5="$T/novault"; mkdir -p "$H5"
-out=$(HOME="$H5" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" 2>&1)
+out=$(PATH="$T/bin:$PATH" HOME="$H5" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" 2>&1)
 chk "no vault, no remote: says how"         "1" "$(printf '%s' "$out" | grep -c 'AIOS_VAULT_REMOTE')"
 
 echo "$PASS passed, $FAIL failed"
