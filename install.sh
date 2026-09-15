@@ -62,6 +62,18 @@ link_tree() {
   done
 }
 
+# ~/.claude/CLAUDE.md predates this repo as a REAL per-machine file, so link()
+# would skip it forever -- and that copy imported the AIOS vault through absolute
+# /Users/jsmith paths that resolve on no Linux machine, dropping the imports
+# silently. Move a real one aside ONCE (kept, timestamped, never deleted) so the
+# shared copy, which imports through ~/, links in its place.
+GLOBAL_CLAUDE_MD="$HOME/.claude/CLAUDE.md"
+if [ -f shared/claude/CLAUDE.md ] && [ -e "$GLOBAL_CLAUDE_MD" ] && [ ! -L "$GLOBAL_CLAUDE_MD" ]; then
+  aside="$GLOBAL_CLAUDE_MD.pre-dotfiles-$(date +%Y%m%dT%H%M%S)"
+  mv "$GLOBAL_CLAUDE_MD" "$aside"
+  echo "moved real $GLOBAL_CLAUDE_MD aside -> $aside (diff it for machine-local lines worth keeping)"
+fi
+
 link_top  "shared"
 link_tree "shared"
 link_top  "$OS_DIR"
