@@ -111,6 +111,20 @@ elif [ -f "$BASHRC" ]; then
   echo "already wired: $BASHRC"
 fi
 
+# shared/shellrc already prefers $XDG_RUNTIME_DIR/gcr/ssh over the plain
+# ssh-agent socket, because gcr-ssh-agent keeps the passphrase in the login
+# keyring instead of forgetting it every boot. Arch ships the unit but enables
+# neither, so on a fresh machine that preferred socket never exists and the
+# shellrc branch silently falls through -- leaving signed commits dying on
+# ssh_askpass with the key sitting unlocked in a keyring nothing can reach.
+# Enabling the socket is the whole fix; the key is added on first use by
+# AddKeysToAgent in ~/.ssh/config.
+if [ "$OS_DIR" = "linux" ] && [ "${DOTFILES_OFFLINE:-0}" != 1 ] \
+   && [ -f /usr/lib/systemd/user/gcr-ssh-agent.socket ]; then
+  systemctl --user enable --now gcr-ssh-agent.socket 2>/dev/null \
+    || echo "could not enable gcr-ssh-agent.socket -- signed commits will need a manual agent"
+fi
+
 # Materialize the global mise tool list that shared/config/mise/config.toml was
 # just linked into place. Not the same category as the pacman report above: mise
 # installs into ~/.local/share/mise, needs no sudo, and claude/setup.sh depends
