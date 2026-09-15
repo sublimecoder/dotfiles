@@ -1,0 +1,18 @@
+# mise global tool versions -- the runtime manager both machines use (see
+# shared/CLAUDE.md). Tracked here because claude/setup.sh now installs graphify
+# with `uv tool install`, and uv itself comes from this list: an untracked tool
+# list means a fresh machine has no uv, so that install silently no-ops.
+#
+# Unlike ~/.claude/settings.json this IS symlinked. The reason settings.json is
+# merged instead -- Claude Code writes runtime state (/model, plugin toggles)
+# into it -- does not apply: `mise use -g` writes a tool list and nothing else,
+# so a write-through symlink is the feature here, not the leak.
+[tools]
+claude = "latest"
+codex = "latest"
+gh = "latest"
+node = "26.8.1"
+uv = "latest"
+
+[settings.upgrade]
+auto_prune = false

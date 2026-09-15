@@ -17,6 +17,12 @@ CLAUDE_HOME="${CLAUDE_HOME:-$HOME/.claude}"
 BASE="$HERE/settings.base.json"
 OFFLINE="${DOTFILES_OFFLINE:-0}"
 
+# A fresh machine runs install.sh before any shell has sourced ~/.shellrc, so
+# neither uv's bin dir nor mise's shims are on PATH yet -- and wire_integrations
+# installs through both. Prepend them for this script only; shared/shellrc makes
+# it permanent for interactive shells.
+export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+
 # Runs LAST in the main flow below (after install_plugins, install_skills and
 # wire_integrations) so settings.base.json's hook arrays win over anything an
 # integration installer wrote to settings.json during this same run.
@@ -100,6 +106,17 @@ wire_integrations() {
   # write is theirs ("managed by herdr; reinstalling overwrites this file").
   if command -v herdr >/dev/null && [ ! -f "$CLAUDE_HOME/hooks/herdr-agent-state.sh" ]; then
     herdr integration install claude
+  fi
+  # graphify's `install --platform claude` only wires the SKILL. The binary is a
+  # PyPI package (`graphifyy`, two y's) that nothing here installed, so a fresh
+  # machine skipped graphify entirely and said so in one MISSING line nobody
+  # read. uv comes from the mise tool list in shared/config/mise/config.toml.
+  # Userspace only: this writes to ~/.local, never through pacman. install.sh's
+  # "never install unasked" stance is about SYSTEM packages -- install_skills
+  # already clones repos and npx-installs without asking.
+  if ! command -v graphify >/dev/null && command -v uv >/dev/null; then
+    uv tool install graphifyy || echo "FAILED graphify install (uv tool install graphifyy)"
+    hash -r 2>/dev/null || true
   fi
   if command -v graphify >/dev/null && [ ! -e "$CLAUDE_HOME/skills/graphify" ]; then
     graphify install --platform claude

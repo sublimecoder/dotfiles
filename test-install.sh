@@ -18,6 +18,9 @@ T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
 # ever regresses, this must catch it everywhere, not just in the case that
 # happens to exercise it -- a real `brew bundle install` must never run here.
 mkdir -p "$T/bin"; printf '#!/bin/sh\necho STUB-BREW\n' > "$T/bin/brew"; chmod +x "$T/bin/brew"
+# Same reason for mise: `mise install` materializes the global tool list, and a
+# real one here would download node/uv into the scratch HOME over the network.
+printf '#!/bin/sh\necho STUB-MISE "$@"\n' > "$T/bin/mise"; chmod +x "$T/bin/mise"
 setup() { HOME="$1" DOTFILES_OFFLINE=1 bash "$HERE/claude/setup.sh" 2>&1; }
 BASE="$HERE/claude/settings.base.json"
 
@@ -70,6 +73,8 @@ chk "chain: settings merged via setup.sh"   "opus[1m]" "$(jq -r .model "$H4/.cla
 chk "chain: vault installer applied"        "1" "$(printf '%s' "$out" | grep -c 'stub aios-install --apply')"
 chk "chain: statusline hook still linked"   "1" "$([ -L "$H4/.claude/hooks/statusline.sh" ] && echo 1 || echo 0)"
 chk "chain: brew skipped offline"           "0" "$(printf '%s' "$out" | grep -c 'STUB-BREW')"
+chk "chain: mise install skipped offline"   "0" "$(printf '%s' "$out" | grep -c 'STUB-MISE install')"
+chk "chain: mise tool list linked"          "1" "$([ -L "$H4/.config/mise/config.toml" ] && echo 1 || echo 0)"
 
 H5="$T/novault"; mkdir -p "$H5"
 out=$(PATH="$T/bin:$PATH" HOME="$H5" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" 2>&1)

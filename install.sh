@@ -111,6 +111,15 @@ elif [ -f "$BASHRC" ]; then
   echo "already wired: $BASHRC"
 fi
 
+# Materialize the global mise tool list that shared/config/mise/config.toml was
+# just linked into place. Not the same category as the pacman report above: mise
+# installs into ~/.local/share/mise, needs no sudo, and claude/setup.sh depends
+# on it one step later (uv -> graphify). Without this a fresh machine links a
+# tool list it never acts on.
+if [ "${DOTFILES_OFFLINE:-0}" != 1 ] && command -v mise >/dev/null; then
+  mise install || echo "mise install failed -- tools stay absent; re-run: mise install"
+fi
+
 # Claude Code: the public half (settings merge, plugins, skills). See
 # claude/setup.sh for why settings.json is merged rather than linked.
 bash "$DOTFILES_DIR/claude/setup.sh"
