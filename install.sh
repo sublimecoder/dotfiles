@@ -118,7 +118,8 @@ bash "$DOTFILES_DIR/claude/setup.sh"
 # The private half lives in the AIOS vault. This public repo never names that
 # repo's remote: pass it once on a fresh machine as AIOS_VAULT_REMOTE.
 VAULT="$HOME/code/aios-vault"
-if [ ! -d "$VAULT/.git" ] && [ ! -f "$VAULT/AIOS/Systems/aios-install.sh" ] && [ -n "${AIOS_VAULT_REMOTE:-}" ]; then
+if [ ! -d "$VAULT/.git" ] && [ ! -f "$VAULT/AIOS/Systems/aios-install.sh" ] && [ -n "${AIOS_VAULT_REMOTE:-}" ] \
+   && [ "${DOTFILES_OFFLINE:-0}" != 1 ]; then
   git clone "$AIOS_VAULT_REMOTE" "$VAULT"
 fi
 if [ -f "$VAULT/AIOS/Systems/aios-install.sh" ]; then

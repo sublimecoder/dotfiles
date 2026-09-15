@@ -5,6 +5,10 @@
 # The properties worth proving: owned keys land, unowned keys survive, nothing
 # machine-absolute is written, and a second run is a byte-identical no-op.
 set -u
+# Isolate from the caller's shell: an exported AIOS_VAULT_REMOTE would make the
+# H5 case below clone the private vault over the network instead of exercising
+# the no-vault message.
+unset AIOS_VAULT_REMOTE
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PASS=0; FAIL=0
 chk() { if [ "$2" = "$3" ]; then PASS=$((PASS+1)); echo "  ok   $1"; else FAIL=$((FAIL+1)); echo "  FAIL $1 (want [$2] got [$3])"; fi; }
@@ -70,6 +74,16 @@ chk "chain: brew skipped offline"           "0" "$(printf '%s' "$out" | grep -c 
 H5="$T/novault"; mkdir -p "$H5"
 out=$(PATH="$T/bin:$PATH" HOME="$H5" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" 2>&1)
 chk "no vault, no remote: says how"         "1" "$(printf '%s' "$out" | grep -c 'AIOS_VAULT_REMOTE')"
+
+# --- offline must skip the clone even when a remote is given (D4) ------------
+# A bogus remote proves it: if install.sh tried to clone it, that clone would
+# fail loudly (or, worse, actually reach the network) instead of the vault
+# simply staying absent.
+H6="$T/offline-with-remote"; mkdir -p "$H6"
+out=$(PATH="$T/bin:$PATH" HOME="$H6" DOTFILES_OFFLINE=1 AIOS_VAULT_REMOTE="https://example.invalid/nope.git" bash "$HERE/install.sh" 2>&1)
+chk "offline: no clone attempted"           "0" "$(printf '%s' "$out" | grep -c 'Cloning into')"
+chk "offline: no vault dir created"         "no" "$([ -d "$H6/code/aios-vault" ] && echo yes || echo no)"
+chk "offline: no-vault message still prints" "1" "$(printf '%s' "$out" | grep -c 'AIOS_VAULT_REMOTE')"
 
 echo "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
