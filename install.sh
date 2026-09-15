@@ -160,5 +160,5 @@ echo
 # corrupting: the advice made the machine it ran on the only one it fit.
 echo "Done."
 if [ "$OS_DIR" = "linux" ]; then
-  echo "If this is a fresh machine, point the terminal at zsh -- see docs/shell-decision.md"
+  echo "Shell here is Omarchy's default bash; ~/.shellrc carries the portable core -- see docs/shell-decision.md"
 fi
