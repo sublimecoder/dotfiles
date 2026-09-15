@@ -1,5 +1,6 @@
 # Arch packages this config expects, beyond what Omarchy already installs.
-# Install with:  sudo pacman -S --needed - < linux/packages.txt
+# Install with:  grep -v '^#' linux/packages.txt | sudo pacman -S --needed -
+# (pacman reads every stdin line as a target; it does not skip comments.)
 # (install.sh only REPORTS what is missing; it never installs unasked.)
 
 # NOTE: zsh is deliberately NOT here. This machine runs Omarchy's default bash
