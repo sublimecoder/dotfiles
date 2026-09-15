@@ -1,7 +1,7 @@
 # dotfiles conventions
 
-Personal, single-owner dotfiles for **two machines**: a Mac and an Omarchy/Arch
-box. One repo, one branch, no rcm and no GNU Stow.
+Personal, single-owner dotfiles for **three machines**: a Mac laptop and two
+Omarchy/Arch machines (a desktop and a laptop). One repo, one branch, no rcm and no GNU Stow.
 
 **This repo was flat until 2026-09-05**, and its own docs said so — "optimize for
 the simplest flat setup, not portability". That held while there was one machine.
@@ -40,7 +40,11 @@ Symlinks into `$HOME`, no external tool:
   `packages.txt`). A new top-level file that should NOT reach `$HOME` goes there.
 - `bin/`, `zsh/`, `vim/`, `git_template/`, `claude/` are mirrored file-by-file
   under `~/.bin/`, `~/.zsh/`, etc.
-- Never overwrites a real (non-symlink) file; it says `skip` and moves on.
+- Never overwrites a real (non-symlink) file; it says `skip` and moves on. One
+  exception: a real `~/.claude/CLAUDE.md` is moved aside (timestamped, kept) so
+  `shared/claude/CLAUDE.md` can link — that file is the global Claude Code
+  instructions, and its AIOS vault imports use `~/` so they resolve on both OSes.
+  Never write an absolute `/Users/...` or `/home/...` path into it.
 - Idempotent — re-run it after adding or removing anything.
 - macOS: runs `brew bundle install --file=macos/Brewfile`.
 - Linux: **reports** missing packages from `linux/packages.txt` and installs
