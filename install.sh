@@ -152,8 +152,13 @@ else
 fi
 
 echo
-echo "Done. If this is a fresh machine, also run:"
-echo "  git config --global init.templatedir ~/.git_template"
+# NOT "also run: git config --global init.templatedir ~/.git_template".
+# shared/gitconfig already sets it, and ~/.gitconfig is a SYMLINK into this
+# repo -- so that command rewrites the tracked file, and git expands the ~ on
+# write. It replaced the portable `~/.git_template` with an absolute
+# /home/jsmith path, which resolves on the Mac not at all. Redundant and
+# corrupting: the advice made the machine it ran on the only one it fit.
+echo "Done."
 if [ "$OS_DIR" = "linux" ]; then
-  echo "  and point the terminal at zsh -- see docs/shell-decision.md"
+  echo "If this is a fresh machine, point the terminal at zsh -- see docs/shell-decision.md"
 fi
