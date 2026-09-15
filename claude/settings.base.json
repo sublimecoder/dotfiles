@@ -20,7 +20,7 @@
       {
         "matcher": "Bash",
         "hooks": [{ "type": "command",
-          "command": "f=\"$HOME/.claude/hooks/rtk-rewrite.sh\"; [ -x \"$f\" ] || exit 0; exec \"$f\"" }]
+          "command": "command -v rtk >/dev/null 2>&1 || exit 0; exec rtk hook claude" }]
       }
     ],
     "PostToolUse": [
