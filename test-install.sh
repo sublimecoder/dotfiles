@@ -52,5 +52,21 @@ setup "$H3" >/dev/null; rc=$?
 chk "invalid settings: non-zero exit"     "1"        "$([ "$rc" -ne 0 ] && echo 1 || echo 0)"
 chk "invalid settings: untouched"         '{"model": ' "$(cat "$H3/.claude/settings.json")"
 
+# --- install.sh chain (Task 5) ------------------------------------------------
+# A stub vault proves the handoff without touching the real one.
+H4="$T/chain"; mkdir -p "$H4/code/aios-vault/AIOS/Systems"
+printf '#!/bin/sh\necho "stub aios-install $*"\n' > "$H4/code/aios-vault/AIOS/Systems/aios-install.sh"
+# A stub brew on PATH: if install.sh runs brew bundle offline, STUB-BREW shows up.
+mkdir -p "$T/bin"; printf '#!/bin/sh\necho STUB-BREW\n' > "$T/bin/brew"; chmod +x "$T/bin/brew"
+out=$(PATH="$T/bin:$PATH" HOME="$H4" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" 2>&1)
+chk "chain: settings merged via setup.sh"   "opus[1m]" "$(jq -r .model "$H4/.claude/settings.json" 2>/dev/null)"
+chk "chain: vault installer applied"        "1" "$(printf '%s' "$out" | grep -c 'stub aios-install --apply')"
+chk "chain: statusline hook still linked"   "1" "$([ -L "$H4/.claude/hooks/statusline.sh" ] && echo 1 || echo 0)"
+chk "chain: brew skipped offline"           "0" "$(printf '%s' "$out" | grep -c 'STUB-BREW')"
+
+H5="$T/novault"; mkdir -p "$H5"
+out=$(HOME="$H5" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" 2>&1)
+chk "no vault, no remote: says how"         "1" "$(printf '%s' "$out" | grep -c 'AIOS_VAULT_REMOTE')"
+
 echo "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

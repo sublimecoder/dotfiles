@@ -67,6 +67,8 @@ brew "reattach-to-user-namespace"
 brew "redis", restart_service: :changed
 # Search tool like grep and The Silver Searcher
 brew "ripgrep"
+# CLI proxy that trims LLM token use; Claude Code's Bash hook delegates to it
+brew "rtk"
 # Static analysis and lint tool, for (ba)sh scripts
 brew "shellcheck"
 # HTTP regression testing and benchmarking utility

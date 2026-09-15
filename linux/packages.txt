@@ -9,6 +9,9 @@
 direnv
 fzf
 
+# claude/setup.sh merges ~/.claude/settings.json with it.
+jq
+
 # Wayland clipboard, the pbcopy/pbpaste equivalent.
 wl-clipboard
 

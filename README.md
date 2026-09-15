@@ -23,6 +23,15 @@ file that's already at the destination.
 On macOS it also runs `brew bundle` against `macos/Brewfile`. On Linux it
 **reports** anything missing from `linux/packages.txt` and installs nothing.
 
+It also restores Claude Code: `claude/setup.sh` merges `claude/settings.base.json`
+into `~/.claude/settings.json` (merged, not linked — Claude Code writes that file),
+installs the listed plugins, and clones third-party skills. A private second
+installer is run afterwards when present; on a fresh machine pass its remote once:
+
+```bash
+AIOS_VAULT_REMOTE=<git url> ~/dotfiles/install.sh
+```
+
 On a fresh machine, also point git at the commit template:
 
 ```bash

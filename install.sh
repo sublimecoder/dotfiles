@@ -79,7 +79,7 @@ link_tree "shared"
 link_top  "$OS_DIR"
 link_tree "$OS_DIR"
 
-if [ "$OS_DIR" = "macos" ] && command -v brew >/dev/null; then
+if [ "$OS_DIR" = "macos" ] && [ "${DOTFILES_OFFLINE:-0}" != 1 ] && command -v brew >/dev/null; then
   brew bundle install --file="$DOTFILES_DIR/macos/Brewfile"
 fi
 
@@ -111,24 +111,20 @@ elif [ -f "$BASHRC" ]; then
   echo "already wired: $BASHRC"
 fi
 
-# ~/.claude/settings.json is a REAL file holding machine-local state (plugins,
-# theme, marketplaces), so it cannot be a symlink either. Merge in the one key
-# this repo owns -- the statusline -- and leave an existing one alone, since a
-# hand-edited statusLine is a deliberate override, not stale state.
-CLAUDE_SETTINGS="$HOME/.claude/settings.json"
-if command -v jq >/dev/null; then
-  mkdir -p "$(dirname "$CLAUDE_SETTINGS")"
-  [ -f "$CLAUDE_SETTINGS" ] || echo '{}' > "$CLAUDE_SETTINGS"
-  if jq -e '.statusLine' "$CLAUDE_SETTINGS" >/dev/null; then
-    echo "already wired: statusLine in $CLAUDE_SETTINGS"
-  else
-    tmp="$(mktemp)"
-    jq '.statusLine = {type: "command", command: "~/.claude/hooks/statusline.sh"}' \
-      "$CLAUDE_SETTINGS" > "$tmp" && mv "$tmp" "$CLAUDE_SETTINGS"
-    echo "added statusLine to $CLAUDE_SETTINGS"
-  fi
+# Claude Code: the layer-neutral half (settings merge, plugins, skills). See
+# claude/setup.sh for why settings.json is merged rather than linked.
+bash "$DOTFILES_DIR/claude/setup.sh"
+
+# The private half lives in the AIOS vault. This public repo never names that
+# repo's remote: pass it once on a fresh machine as AIOS_VAULT_REMOTE.
+VAULT="$HOME/code/aios-vault"
+if [ ! -d "$VAULT/.git" ] && [ ! -f "$VAULT/AIOS/Systems/aios-install.sh" ] && [ -n "${AIOS_VAULT_REMOTE:-}" ]; then
+  git clone "$AIOS_VAULT_REMOTE" "$VAULT"
+fi
+if [ -f "$VAULT/AIOS/Systems/aios-install.sh" ]; then
+  sh "$VAULT/AIOS/Systems/aios-install.sh" --apply
 else
-  echo "jq missing -- skipped statusLine wiring in $CLAUDE_SETTINGS"
+  echo "No vault at $VAULT -- re-run with AIOS_VAULT_REMOTE=<vault git url> to clone and wire it."
 fi
 
 echo
