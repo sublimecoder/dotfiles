@@ -111,7 +111,7 @@ elif [ -f "$BASHRC" ]; then
   echo "already wired: $BASHRC"
 fi
 
-# Claude Code: the layer-neutral half (settings merge, plugins, skills). See
+# Claude Code: the public half (settings merge, plugins, skills). See
 # claude/setup.sh for why settings.json is merged rather than linked.
 bash "$DOTFILES_DIR/claude/setup.sh"
 

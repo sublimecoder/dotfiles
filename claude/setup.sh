@@ -2,9 +2,8 @@
 # shellcheck disable=SC2016  # jq programs reference $vars inside single quotes on purpose
 set -euo pipefail
 
-# Restores the layer-neutral half of the Claude Code setup. The other half --
-# anything naming an identity layer -- is owned by the private vault's
-# aios-install.sh, which install.sh runs next.
+# Restores the public half of the Claude Code setup. The private half is owned
+# by a separate installer, which install.sh runs next.
 #
 # ~/.claude/settings.json is MERGED, never symlinked: Claude Code writes to it at
 # runtime (/model, plugin toggles), and a symlink would commit every toggle to a
