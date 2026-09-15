@@ -18,6 +18,16 @@ CLAUDE_HOME="${CLAUDE_HOME:-$HOME/.claude}"
 BASE="$HERE/settings.base.json"
 OFFLINE="${DOTFILES_OFFLINE:-0}"
 
+# Runs LAST in the main flow below (after install_plugins, install_skills and
+# wire_integrations) so settings.base.json's hook arrays win over anything an
+# integration installer wrote to settings.json during this same run.
+#
+# Claude Code replaces a hook event array (PreToolUse, PostToolUse,
+# SessionStart, ...) WHOLESALE, never merges within it -- so any hook another
+# tool adds to one of those events is silently dropped the next time this
+# script runs, unless it also lives in settings.base.json. herdr, rtk and
+# gstack each write their own hook; if a future integration's hook isn't
+# showing up after a re-run, this is why -- add it to settings.base.json.
 merge_settings() {
   local target="$CLAUDE_HOME/settings.json" tmp
   if ! command -v jq >/dev/null; then echo "MISSING jq -- skipped settings merge"; return 0; fi
@@ -42,12 +52,12 @@ install_plugins() {
   jq -r '.extraKnownMarketplaces | to_entries[] | "\(.key) \(.value.source.repo)"' "$BASE" |
     while read -r name repo; do
       if jq -e --arg n "$name" 'has($n)' "$known" >/dev/null 2>&1; then echo "marketplace ok: $name"
-      else claude plugin marketplace add "$repo" </dev/null; fi
+      else claude plugin marketplace add "$repo" </dev/null || echo "FAILED marketplace $name"; fi
     done
   jq -r '.enabledPlugins | to_entries[] | select(.value) | .key' "$BASE" |
     while read -r plugin; do
       if jq -e --arg p "$plugin" '.plugins | has($p)' "$installed" >/dev/null 2>&1; then echo "plugin ok: $plugin"
-      else claude plugin install "$plugin" --scope user </dev/null; fi
+      else claude plugin install "$plugin" --scope user </dev/null || echo "FAILED plugin $plugin"; fi
     done
 }
 
@@ -62,7 +72,7 @@ install_skills() {
   if ! command -v git >/dev/null; then echo "MISSING git -- skipped skill clones"; else
     if clone_once https://github.com/garrytan/gstack.git "$CLAUDE_HOME/skills/gstack"; then
       if command -v bun >/dev/null; then
-        (cd "$CLAUDE_HOME/skills/gstack" && ./setup --host claude --no-prefix -q)
+        (cd "$CLAUDE_HOME/skills/gstack" && ./setup --host claude --no-prefix -q) || echo "FAILED gstack setup"
       else
         echo "MISSING bun -- gstack cloned but not set up; install bun, then: cd ~/.claude/skills/gstack && ./setup --host claude --no-prefix -q"
       fi
@@ -71,14 +81,17 @@ install_skills() {
     for d in "$CLAUDE_HOME/vendor/emilkowalski-skills/skills"/*/; do
       [ -d "$d" ] || continue
       name="$(basename "$d")"
-      [ -e "$CLAUDE_HOME/skills/$name" ] || ln -s "${d%/}" "$CLAUDE_HOME/skills/$name"
+      # -e follows a symlink, so a BROKEN one (the source dir moved or was
+      # never cloned) fails it and ln then errors into set -e, aborting the
+      # whole install. -L catches it whether or not it currently resolves.
+      [ -e "$CLAUDE_HOME/skills/$name" ] || [ -L "$CLAUDE_HOME/skills/$name" ] || ln -s "${d%/}" "$CLAUDE_HOME/skills/$name"
     done
   fi
   if ! command -v npx >/dev/null; then echo "MISSING npx -- skipped $(wc -l < "$HERE/skills.tsv" | tr -d ' ') skills in skills.tsv"; return 0; fi
   while IFS=$'\t' read -r src skill; do
     [ -n "$skill" ] || continue
     [ -e "$HOME/.agents/skills/$skill" ] && continue
-    npx -y skills add "$src" -g -a claude-code -s "$skill" -y </dev/null
+    npx -y skills add "$src" -g -a claude-code -s "$skill" -y </dev/null || echo "FAILED skill $skill"
   done < "$HERE/skills.tsv"
 }
 
@@ -101,11 +114,12 @@ wire_integrations() {
   done
 }
 
-merge_settings
 if [ "$OFFLINE" = 1 ]; then
   echo "DOTFILES_OFFLINE=1 -- skipped plugins, skills, integrations"
+  merge_settings
 else
   install_plugins
   install_skills
   wire_integrations
+  merge_settings
 fi
