@@ -43,3 +43,5 @@
 	allowedSignersFile = ~/.ssh/allowed_signers
 [pull]
 	rebase = true
+[credential "https://git.heroku.com"]
+	helper = !heroku git:credentials
