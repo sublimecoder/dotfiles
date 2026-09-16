@@ -10,6 +10,8 @@
 [tools]
 claude = "latest"
 codex = "latest"
+elixir = "latest"
+erlang = "latest"
 gh = "latest"
 node = "26.8.1"
 uv = "latest"

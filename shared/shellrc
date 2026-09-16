@@ -25,9 +25,19 @@ fi
 # Portable functions: g, mcd, envup. Guarded because the directory does not
 # exist until install.sh has run, and an unmatched glob is an ERROR in zsh
 # rather than a silent no-op.
+#
+# The unalias is load-bearing, not tidiness. Bash expands aliases in the
+# FUNCTION-NAME position at parse time, so with Omarchy's `alias g='git'` live
+# (default/bash/aliases:61, sourced by ~/.bashrc before this file), `g() {...}`
+# in functions/g parses as `git() {...}` -- a function named git whose body
+# calls git. Every `git` then recursed ~4600 deep and segfaulted the shell.
+# Keyed off the file's own basename so any future functions/<name> that
+# collides with an alias is covered too, not just g.
 if [ -d "$HOME/.shell/functions" ]; then
   for _f in "$HOME"/.shell/functions/*; do
-    [ -f "$_f" ] && . "$_f"
+    [ -f "$_f" ] || continue
+    unalias "${_f##*/}" 2>/dev/null
+    . "$_f"
   done
   unset _f
 fi
