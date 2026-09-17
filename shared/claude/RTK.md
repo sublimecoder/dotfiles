@@ -26,4 +26,6 @@ which rtk             # Verify correct binary
 All other commands are automatically rewritten by the Claude Code hook.
 Example: `git status` → `rtk git status` (transparent, 0 tokens overhead)
 
+⚠️ **Filtering is lossy**: rewrites can drop a command's only confirmation line, and may buffer output until exit (an empty log mid-run is not a hang). Verify a state-changing command with a follow-up state/JSON query, or run it via `rtk proxy` when the raw output IS the verification.
+
 Refer to CLAUDE.md for full command reference.
