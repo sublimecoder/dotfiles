@@ -1,0 +1,20 @@
+#!/bin/sh
+# CUPS backend: hand the rendered job to lprint with monochrome pinned.
+# Chromium always sends print-color-mode=color, which lprint (mono-only)
+# rejects at Validate-Job; pinning it here keeps that value off the wire.
+# Install as /usr/lib/cups/backend/lprint, use device URI lprint:/<printer>.
+
+[ $# -eq 0 ] && { echo 'direct lprint:/ "Unknown" "LPrint (monochrome-pinned)"'; exit 0; }
+
+P="${DEVICE_URI#lprint:/}"
+[ -n "$P" ] || P=Y812BT
+
+if [ -n "$6" ]; then
+    lprint -d "$P" -o print-color-mode=monochrome "$6"
+else
+    lprint -d "$P" -o print-color-mode=monochrome -
+fi
+
+rc=$?
+[ $rc -eq 0 ] || echo "ERROR: lprint exited $rc" >&2
+exit $rc

@@ -47,10 +47,45 @@ git config --global init.templatedir ~/.git_template
 - `shared/bin/` — small personal scripts, on `$PATH` via `install.sh`
 - `macos/` — Brewfile, zprofile, and the Homebrew / gcloud / Android / iCloud
   bits that exist only there
-- `linux/` — `packages.txt` and the Wayland clipboard aliases
+- `linux/` — `packages.txt`, the Wayland clipboard aliases, and the printer
+  setup (`linux/bin/setup-printers.sh`, `linux/cups/lprint-backend`)
 
 `macos/zsh/configs/` and `linux/zsh/configs/` link into the *same*
 `~/.zsh/configs/` as the shared ones, so both halves load through one loader.
+
+## Printers
+
+`install.sh` does **not** configure printers — every step needs root. It only
+reports the command when no CUPS queue exists:
+
+```bash
+sudo ~/dotfiles/linux/bin/setup-printers.sh
+```
+
+That wires two things on a fresh Omarchy box:
+
+- **Canon PIXMA TS4320 (network)** — driverless. No Canon package and no PPD:
+  the printer advertises IPP Everywhere over mDNS and stock CUPS drives it. The
+  script discovers *any* AirPrint printer on the LAN rather than hardcoding one,
+  so a replacement printer needs no edit.
+- **Yxwl/Labeer Y812BT 4x6 thermal label printer (USB)** — via `lprint` from
+  Arch `extra/`. Its USB device ID reports an empty `CMD:`, so nothing
+  auto-detects it; the command language is TSPL, confirmed by probe.
+
+Two things that setup learned the hard way, both written into the script:
+
+- `lprint` claims the USB device through libusb, which **deletes
+  `/dev/usb/lp0`**. Writing to that path afterwards silently creates a regular
+  file and the job disappears with no error. Drive it through `lprint`.
+- Chromium/Brave sends `print-color-mode=color` on every job even when CUPS
+  advertises monochrome-only, and `lprint` rejects it — jobs land as
+  `canceled-at-device` with nothing printed and nothing stuck. Not fixable from
+  the browser or the queue defaults, so CUPS reaches `lprint` through
+  `linux/cups/lprint-backend`, a nine-line shim that pins monochrome.
+
+The label printer's resolution is **per-unit** — 203 dpi was confirmed with a
+ruler, but the same Yxwl engine ships at 300 dpi under other badges. Verify
+before trusting it; re-run with `LABEL_DPI=300` if labels print off-scale.
 
 ## Shell
 

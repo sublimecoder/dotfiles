@@ -16,6 +16,15 @@ jq
 # Wayland clipboard, the pbcopy/pbpaste equivalent.
 wl-clipboard
 
+# 4x6 thermal label printer (Yxwl/Labeer Y812BT) over USB -- see
+# linux/bin/setup-printers.sh. Upstream is msweet.org/lprint, by the CUPS
+# author, and it carries TSPL/ZPL/EPL/DYMO drivers -- so no vendor .run blob
+# and no third-party driver repo.
+# NOT listed: cups, cups-filters, avahi, nss-mdns. Omarchy ships all four
+# already (this file is only for what it does not), and the Canon PIXMA needs
+# nothing beyond them -- it is driverless IPP Everywhere, no Canon package.
+lprint
+
 # NOT a package: shasum ships with core `perl` (verified with
 # `pacman -Qo /usr/bin/core_perl/shasum`), which Arch already installs. An
 # earlier version of this file listed `perl-Digest-SHA` -- that is the Debian

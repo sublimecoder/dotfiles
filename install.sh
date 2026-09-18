@@ -99,6 +99,20 @@ if [ "$OS_DIR" = "linux" ] && [ -f linux/packages.txt ]; then
   fi
 fi
 
+# REPORT ONLY, for the same reason as the packages block above: every step in
+# setup-printers.sh needs root -- systemctl enable, lpadmin, and a backend
+# dropped into /usr/lib/cups/backend -- while this installer runs unprivileged
+# and touches no system state. Naming the script IS the integration.
+if [ "$OS_DIR" = "linux" ] && [ -x linux/bin/setup-printers.sh ]; then
+  queues="$(lpstat -v 2>/dev/null || true)"
+  if [ -z "$queues" ]; then
+    echo
+    echo "No printers configured. To wire the Canon PIXMA (network, driverless)"
+    echo "and the 4x6 thermal label printer (USB):"
+    echo "  sudo $DOTFILES_DIR/linux/bin/setup-printers.sh"
+  fi
+fi
+
 # ~/.bashrc is a REAL file on Omarchy carrying machine-local content (cargo,
 # gcloud), so link() correctly refuses to replace it. Append one source line
 # instead -- idempotent, and reversible by deleting the two lines.
