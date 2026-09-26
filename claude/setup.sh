@@ -121,8 +121,9 @@ wire_integrations() {
   if command -v graphify >/dev/null && [ ! -e "$CLAUDE_HOME/skills/graphify" ]; then
     graphify install --platform claude
   fi
-  # rtk needs no install step: its Claude hook is the `rtk hook claude` command
-  # in settings.base.json, and RTK.md is tracked in shared/claude/. `rtk init -g`
+  # rtk's binary comes from macos/Brewfile or the mise tool list (Linux); its
+  # Claude hook is the `rtk hook claude` command in settings.base.json, and
+  # RTK.md is tracked in shared/claude/. `rtk init -g`
   # is deliberately NOT run -- it appends to CLAUDE.md, which is a linked file here.
   for c in rtk graphify herdr bun npx; do
     command -v "$c" >/dev/null || echo "MISSING $c (optional; the hook or skill that needs it stays inert)"
