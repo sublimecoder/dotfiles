@@ -25,3 +25,8 @@ Personal dead-code-asymmetry rule extending the ponytail plugin. Canonical in th
 Personal extension to the superpowers `writing-plans` skill: recon order is graph → grep → read → write, a brief cites only what it has opened, and cross-task seams get named. Canonical in the vault (survives plugin upgrades), no private content, imported everywhere like [[ponytail-amendment]]. Edit the rule in that file only.
 
 @~/code/aios-vault/AIOS/Systems/plan-recon-amendment.md
+
+## /tmp is RAM (machine-wide)
+No heavy scratch (npm install, clone, worktree) in tmpfs `/tmp`, including the harness scratchpad. Canonical in the vault, layer-neutral, imported everywhere like [[ponytail-amendment]]. Edit the rule in that file only.
+
+@~/code/aios-vault/AIOS/Systems/tmp-is-ram.md
