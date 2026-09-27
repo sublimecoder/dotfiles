@@ -14,6 +14,7 @@ elixir = "latest"
 erlang = "latest"
 gh = "latest"
 node = "latest"
+ruby = "latest"
 uv = "latest"
 # rtk: the Claude hook in claude/settings.base.json and ~/.claude/RTK.md both
 # assume it. No Arch/AUR package exists, but upstream ships a linux-gnu
@@ -22,6 +23,10 @@ uv = "latest"
 
 [settings]
 minimum_release_age = "1h"
+idiomatic_version_file_enable_tools = ["ruby"]
 
 [settings.upgrade]
 auto_prune = false
+
+[settings.ruby]
+compile = false
