@@ -53,7 +53,11 @@ link_top() {
 # macos/zsh/configs/macos.zsh sit beside the shared configs at runtime.
 link_tree() {
   local dir="$1" sub rel file
-  for sub in bin shell zsh vim git_template claude config; do
+  # jcode: only the prompt files (prompt-overlay.md, swarm-prompt.md). jcode
+  # ignores ~/.claude/CLAUDE.md and @import, so these carry the AIOS effort table
+  # and brain-loading rule into jcode. ~/.jcode/config.toml is NOT here: it is
+  # owned by the vault's aios-install.sh, which merges hooks into it.
+  for sub in bin shell zsh vim git_template claude config jcode; do
     [ -d "$dir/$sub" ] || continue
     while IFS= read -r -d '' file; do
       rel="${file#"$dir/$sub"/}"
