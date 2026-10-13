@@ -1,0 +1,14 @@
+# Read by EVERY zsh, including non-interactive ones (`zsh -c`, scripts, agent
+# shells) that never source ~/.zshrc or ~/.shellrc. Keep it to PATH only.
+#
+# ~/.local/bin holds user-installed CLIs (jcode, uv, pipx shims). The jcode
+# installer appends a hardcoded absolute Linux home path here, which does not
+# exist on macOS; this portable form replaces it. Guarded on the dir existing
+# and on not already being in PATH, so it is a no-op where it does not apply
+# and does not stack with the same entry from ~/.shellrc.
+if [ -d "$HOME/.local/bin" ]; then
+  case ":$PATH:" in
+    *":$HOME/.local/bin:"*) ;;
+    *) export PATH="$HOME/.local/bin:$PATH" ;;
+  esac
+fi

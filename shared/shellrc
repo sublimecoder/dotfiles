@@ -45,7 +45,11 @@ fi
 [ -f "$HOME/.aliases" ] && . "$HOME/.aliases"
 
 export PATH="$HOME/.bin:$PATH"
-export PATH="$HOME/.local/bin:$PATH"
+# ~/.zshenv may already have added this for non-interactive zsh; don't stack it.
+case ":$PATH:" in
+  *":$HOME/.local/bin:"*) ;;
+  *) export PATH="$HOME/.local/bin:$PATH" ;;
+esac
 
 # Guarded: unguarded, `direnv hook` prints an error on EVERY new shell on a box
 # without direnv, and `$(go env GOPATH)` with no go appends an empty PATH element.
