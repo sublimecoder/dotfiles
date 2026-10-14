@@ -44,20 +44,25 @@ vault-note skills stay unpinned — they inherit the orchestrator session model.
 
 # 🧠 AIOS brain — jcode adaptation
 
-> **Adapted from `~/code/aios-vault/AIOS/Systems/repo-aios-block.md`** (the text every
-> repo's `CLAUDE.md` `@import`s). jcode does not follow `@import`, and its
-> `session_start` hook is a detached observer whose stdout never reaches the model,
-> so the Claude Code "header injected at session start" mechanism cannot work here.
-> Under jcode the brain is **pulled**, not pushed. Layer-neutral: names no identity.
-> Added 2026-10-13.
+> **Adapted from `~/code/aios-vault/AIOS/Systems/repo-aios-block.md`** (the usage
+> rules Claude Code's SessionStart hook injects into every wired repo; each repo's
+> `AGENTS.md` also points to it). jcode's `session_start` hook is a detached observer
+> whose stdout never reaches the model, so the "header injected at session start"
+> mechanism cannot work here. Under jcode the brain is **pulled**, not pushed.
+> Layer-neutral: names no identity. Added 2026-10-13; updated 2026-10-13 for the
+> hook-injected block and playbook.
 
 **Before any non-trivial task in a repo, load its brain:**
 
     cd <repo root> && sh ~/code/aios-vault/AIOS/Systems/hooks/aios-context.sh
 
 - It looks the repo up in `AIOS/Systems/repo-layers.tsv` and prints
-  `=== AIOS brain (<layer>/<project>) ===` with `<layer>/me.md` (durable) and the
-  project note's current state. It also syncs the vault (pull/push) first.
+  `=== AIOS brain (<layer>/<project>) ===` with the usage rules
+  (`repo-aios-block.md`), `<layer>/me.md` (durable), the project note's current
+  state and `<layer>/playbook.md` when the layer has one. It also syncs the vault
+  (pull/push) first.
+- Output is held under 10,000 bytes. A section ending `… (cut for size at N bytes;
+  full: <path>)` was trimmed; read that path when the task touches it.
 - **No output = the repo is not in `repo-layers.tsv`.** Say so; do not go hunting
   through the vault for a match. An unwired vault looks exactly like an empty one.
 - The project note records what the code cannot: why it was built this way, what
