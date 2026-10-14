@@ -54,15 +54,16 @@ vault-note skills stay unpinned — they inherit the orchestrator session model.
 
 **Before any non-trivial task in a repo, load its brain:**
 
-    cd <repo root> && sh ~/code/aios-vault/AIOS/Systems/hooks/aios-context.sh
+    cd <repo root> && AIOS_NOTE_HOOK=1 sh ~/code/aios-vault/AIOS/Systems/hooks/aios-context.sh && sh ~/code/aios-vault/AIOS/Systems/hooks/aios-context.sh --note
 
-- It looks the repo up in `AIOS/Systems/repo-layers.tsv` and prints
+- It looks the repo up in `AIOS/Systems/repo-layers.tsv`. The first call prints
   `=== AIOS brain (<layer>/<project>) ===` with the usage rules
-  (`repo-aios-block.md`), `<layer>/me.md` (durable), the project note's current
-  state and `<layer>/playbook.md` when the layer has one. It also syncs the vault
-  (pull/push) first.
-- Output is held under 10,000 bytes. A section ending `… (cut for size at N bytes;
-  full: <path>)` was trimmed; read that path when the task touches it.
+  (`repo-aios-block.md`), `<layer>/me.md` (durable) and `<layer>/playbook.md` when
+  the layer has one, and syncs the vault (pull/push) first. The second prints the
+  project note's current state under `… — project note ===`. Run both: the split
+  gives each its own 10,000-byte budget, so a long note is not cut to fit.
+- A section ending `… (cut for size at N bytes; full: <path>)` was trimmed; read
+  that path when the task touches it.
 - **No output = the repo is not in `repo-layers.tsv`.** Say so; do not go hunting
   through the vault for a match. An unwired vault looks exactly like an empty one.
 - The project note records what the code cannot: why it was built this way, what
