@@ -64,7 +64,7 @@ MISSING=0
 # excludes), so it is kept as <dest>.bak.<time>, never just overwritten.
 want() {
   if [ -f "$1" ] && [ "$(cat "$1")" = "$3" ]; then return; fi
-  MISSING=$((MISSING+1)); echo "  missing  $1$([ -f "$1" ] && echo ' (differs; old copy kept as .bak)')"
+  MISSING=$((MISSING+1)); echo "  missing  $1$([ -f "$1" ] && echo " (differs; apply keeps the old copy as $(basename "$1").bak.<time>)")"
   [ "$CHECK" -eq 1 ] && return
   [ -f "$1" ] && cp -p "$1" "$1.bak.$(date +%s)"
   install -Dm"$2" /dev/null "$1"; printf '%s\n' "$3" > "$1"
