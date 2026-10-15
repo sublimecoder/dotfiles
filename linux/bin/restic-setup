@@ -53,11 +53,14 @@ TMPCAP="[Mount]
 Options=mode=1777,strictatime,nosuid,nodev,size=3G,nr_inodes=1m"
 
 MISSING=0
-# want <dest> <mode> <content>: install unless the file already matches
+# want <dest> <mode> <content>: install unless the file already matches. A
+# differing file is a working machine's own config (another host's paths or
+# excludes), so it is kept as <dest>.bak.<time>, never just overwritten.
 want() {
   if [ -f "$1" ] && [ "$(cat "$1")" = "$3" ]; then return; fi
-  MISSING=$((MISSING+1)); echo "  missing  $1"
+  MISSING=$((MISSING+1)); echo "  missing  $1$([ -f "$1" ] && echo ' (differs; old copy kept as .bak)')"
   [ "$CHECK" -eq 1 ] && return
+  [ -f "$1" ] && cp -p "$1" "$1.bak.$(date +%s)"
   install -Dm"$2" /dev/null "$1"; printf '%s\n' "$3" > "$1"
 }
 
@@ -86,6 +89,21 @@ if [ ! -f "$ENV" ]; then
       echo "  those credentials do not open $repo; left $ENV in place to fix by hand" >&2
       exit 1
     fi
+  fi
+fi
+
+# Files in place prove nothing about the backup itself: open the repo and read
+# the newest snapshot, so wrong credentials or a stalled timer show up here.
+if [ -f "$ENV" ]; then
+  if latest=$( set -a; . "$ENV"; set +a; restic snapshots --latest 1 --json 2>/dev/null | jq -r 'max_by(.time).time // empty' ); then
+    if [ -z "$latest" ]; then echo "  note     repo opens, no snapshots yet"
+    else
+      age_h=$(( ( $(date +%s) - $(date -d "$latest" +%s) ) / 3600 ))
+      echo "  ok       newest snapshot ${age_h}h old ($latest)"
+      [ "$age_h" -gt 48 ] && { MISSING=$((MISSING+1)); echo "  missing  a snapshot in the last 48h"; }
+    fi
+  else
+    MISSING=$((MISSING+1)); echo "  missing  working credentials: $ENV does not open the repo"
   fi
 fi
 

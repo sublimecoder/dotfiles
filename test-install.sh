@@ -131,5 +131,25 @@ chk "provision check: names no present item"         "0" "$(printf '%s' "$out" |
 chk "provision check: bar keeps manifest order"      "1" "$(printf '%s' "$out" | grep -c 'bar need.widget (after have.widget)')"
 chk "provision check: changed nothing"               "no" "$([ -f "$P/omarchy-calls" ] && echo yes || echo no)"
 
+# --- omarchy-provision apply: a command that reads stdin must not eat the manifest --
+# Omarchy installers prompt (gum confirm, yay menus). If the loop's stdin is the
+# manifest, the first prompting command swallows every later line and the run
+# silently stops early. This stub drains stdin like such a prompt would.
+A="$T/apply"; mkdir -p "$A/bin" "$A/m" "$A/home/.config/omarchy" "$A/home/.local/share/applications"
+printf '#!/bin/sh
+exit 1
+' > "$A/bin/pacman"
+printf '#!/bin/sh
+cat >/dev/null
+echo "$*" >> "%s/calls"
+' "$A" > "$A/bin/omarchy"
+chmod +x "$A/bin/"*
+printf '{"bar":{"layout":{"right":[]}}}\n' > "$A/home/.config/omarchy/shell.json"
+printf 'omarchy pkg:x install one\nomarchy pkg:y install two\nwebapp Late|https://late.invalid|late\n' > "$A/m/common.manifest"
+PATH="$A/bin:$PATH" HOME="$A/home" OMARCHY_PROVISION_MANIFESTS="$A/m" \
+  bash "$HERE/linux/bin/omarchy-provision" --host nohost </dev/null >/dev/null 2>&1; rc=$?
+chk "provision apply: every line runs past a prompting command" "3" "$(wc -l < "$A/calls" 2>/dev/null | tr -d ' ')"
+chk "provision apply: exits non-zero when items stay missing"  "1" "$rc"
+
 echo "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

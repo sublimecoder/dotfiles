@@ -59,7 +59,9 @@ fi
 
 echo "everything else"
 bar_prev=omarchy.tray
-while read -r kind rest; do
+# The manifest arrives on fd 3, not stdin: the installers this loop runs prompt
+# (gum confirm, yay menus) and would otherwise read the remaining lines as answers.
+while read -r kind rest <&3; do
   case "$kind" in
     pkg|aur) ;;
     omarchy)
@@ -156,11 +158,14 @@ while read -r kind rest; do
       ;;
     *) echo "  unknown manifest kind: $kind" >&2 ;;
   esac
-done < <(entries)
+done 3< <(entries)
 
 echo
 if [ "$CHECK" -eq 1 ]; then
   [ "$MISSING" -eq 0 ] && { echo "$HOST: nothing missing"; exit 0; }
   echo "$HOST: $MISSING missing. Apply with: omarchy-provision"; exit 1
 fi
-echo "$HOST: done ($MISSING item(s) were missing). Verify with: omarchy-provision --check"
+# A step can fail without stopping the run, so the verdict comes from a fresh
+# check, never from having reached the end.
+echo "$HOST: applied $MISSING item(s). Re-checking:"
+exec "$0" --check --host "$HOST"
