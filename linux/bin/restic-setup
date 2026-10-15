@@ -3,6 +3,7 @@
 #
 #   sudo restic-setup            install script, units, excludes, credentials, timer
 #   sudo restic-setup --check    change nothing; list what is missing, exit 1 if any
+#   (pkexec works too, e.g. from a shell with no terminal for the sudo prompt)
 #
 # Installs /usr/local/bin/<host>-backup (from linux/restic/backup.sh), the
 # <host>-backup.service/.timer units, /etc/restic/excludes, and the /tmp size cap.
@@ -16,7 +17,12 @@ SRC="$DOTFILES_DIR/linux/restic"
 CHECK=0; [ "${1:-}" = --check ] && CHECK=1
 [ "$(id -u)" -eq 0 ] || { echo "run with sudo" >&2; exit 2; }
 HOST="$(hostname)"
-USER_HOME="$(getent passwd "${SUDO_USER:-$(logname 2>/dev/null || echo root)}" | cut -d: -f6)"
+# The human behind sudo or pkexec, never root's own home: the backup covers theirs.
+INVOKER="${SUDO_USER:-}"
+[ -z "$INVOKER" ] && [ -n "${PKEXEC_UID:-}" ] && INVOKER="$(getent passwd "$PKEXEC_UID" | cut -d: -f1)"
+[ -z "$INVOKER" ] && INVOKER="$(logname 2>/dev/null || true)"
+[ -n "$INVOKER" ] && [ "$INVOKER" != root ] || { echo "cannot tell which user to back up; run via sudo or pkexec" >&2; exit 2; }
+USER_HOME="$(getent passwd "$INVOKER" | cut -d: -f6)"
 NAME="$HOST-backup"
 ENV=/root/.restic-env
 
