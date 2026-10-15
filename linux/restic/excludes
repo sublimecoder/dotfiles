@@ -1,0 +1,13 @@
+/home/*/.cache
+/home/*/.local/share/Trash
+/home/*/.local/share/mise/installs
+/home/*/.cargo/registry
+/home/*/.bun/install/cache
+/home/*/.npm
+/home/*/.config/**/Cache
+/home/*/.config/**/Code Cache
+/home/*/.config/**/GPUCache
+/home/*/.config/**/Service Worker/CacheStorage
+/root/.cache
+**/node_modules
+**/_build

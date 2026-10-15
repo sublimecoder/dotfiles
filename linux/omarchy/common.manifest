@@ -1,0 +1,50 @@
+# What every Omarchy machine here carries beyond a stock install. Read by
+# linux/bin/omarchy-provision together with hosts/<hostname>.manifest.
+#
+# One entry per line: <kind> <args...>. Kinds:
+#   pkg <name>                   official repo package (omarchy pkg add)
+#   aur <name>                   AUR package (omarchy pkg aur add)
+#   omarchy <probe> <args...>    run `omarchy <args...>` unless <probe> holds;
+#                                probe is pkg:<name> or cmd:<name>
+#   plugin <id> <git-url>        Omarchy shell plugin (omarchy plugin add)
+#   bar <id>                     bar widget, placed after the previous bar line
+#                                (the first goes after omarchy.tray); host files only,
+#                                because the order interleaves per machine
+#   webapp <Name>|<url>|<icon>   omarchy webapp install
+#   unit <system|user> <unit>    systemctl enable --now
+#   file <repo-path> <dest>      copied (not linked: Omarchy owns these files),
+#                                the old one kept as <dest>.bak.<time>
+#   setting <file> <key> <value> one `key = value` line in a TOML config, edited in place
+#   pandoc                       pandoc-cli from pacman, else the static GitHub release
+#   manual <name> <note...>      reported, never automated
+#   backup                       restic to B2: report only, setup is `sudo restic-setup`
+#
+# Not here, on purpose: packages Omarchy or Asahi install themselves, the AIOS
+# timers (aios-scheduler.sh owns those, scheduler host only), and secrets.
+
+pkg direnv
+pkg restic
+
+omarchy pkg:tailscale install service tailscale
+omarchy pkg:signal-desktop install service signal
+omarchy pkg:brave-bin install browser brave
+
+plugin omamail https://github.com/huacnlee/omamail.git
+plugin pi.backup-monitor https://github.com/nixfred/backup.omarchy.git
+plugin robzolkos.github https://github.com/robzolkos/omarchy-github.git
+
+webapp Basecamp|https://launchpad.37signals.com|basecamp
+webapp Discord|https://discord.com/channels/@me|omarchy-discord
+webapp Google Contacts|https://contacts.google.com/|google-contacts
+webapp Google Maps|https://maps.google.com|google-maps
+webapp Google Messages|https://messages.google.com/web/conversations|google-messages
+webapp Google Photos|https://photos.google.com/|google-photos
+webapp ProtonMail|https://mail.proton.me|protonmail
+webapp WhatsApp|https://web.whatsapp.com/|whatsapp
+webapp X|https://x.com/|x
+webapp YouTube|https://youtube.com/|youtube
+
+setting herdr/config.toml onboarding false
+setting herdr/config.toml show_agent_labels_on_pane_borders false
+
+backup

@@ -1,0 +1,31 @@
+# squirtle: MacBook Pro M2 Pro, Asahi, aarch64. Adds to common.manifest.
+
+pkg lsof
+pkg proton-vpn-cli
+pkg telegram-desktop
+pkg wf-recorder
+pkg openssh
+
+aur cloud-sql-proxy
+aur flyctl
+aur google-cloud-cli
+aur google-cloud-cli-bq
+aur google-cloud-cli-gsutil
+
+omarchy pkg:voxtype voxtype install
+omarchy cmd:1password install 1password
+
+plugin io.github.grichard99.omaproton-vpn https://github.com/grichard99/omaproton-vpn.git
+
+bar pi.backup-monitor
+bar omarchy.tailscale
+bar omamail
+bar robzolkos.github
+
+webapp Linear|https://linear.app/|linear
+
+unit system sshd.service
+unit system proton.VPN.service
+
+pandoc
+manual rawmakase RAW photo developer, unpacked by hand into ~/.local/opt/rawmakase-<ver> with a ~/.local/bin wrapper; the download source is not recorded

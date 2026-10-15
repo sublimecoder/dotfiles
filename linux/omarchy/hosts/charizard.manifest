@@ -1,0 +1,31 @@
+# charizard: desktop, x86_64. Adds to common.manifest.
+
+pkg flatpak
+pkg freerdp
+pkg openbsd-netcat
+pkg qmk
+pkg sane
+
+aur goxlr-utility
+aur naps2-bin
+aur plex-media-server
+
+omarchy pkg:voxtype-bin voxtype install
+omarchy pkg:retroarch install gaming retroarch
+omarchy pkg:steam install gaming steam
+omarchy pkg:umu-launcher install gaming battlenet
+
+plugin hancore.voxtype-enhance https://github.com/iamcheyan/omarchy-voxtype-enhance.git
+plugin io.github.thedarkcr0w.goxlr https://github.com/thedarkcr0w/omarchy-goxlr.git
+
+bar pi.backup-monitor
+bar omarchy.tailscale
+bar hancore.voxtype-enhance
+bar omamail
+bar io.github.thedarkcr0w.goxlr
+bar robzolkos.github
+
+webapp Proton Drive|https://drive.proton.me|proton-drive
+
+unit system plexmediaserver.service
+unit system fstrim.timer

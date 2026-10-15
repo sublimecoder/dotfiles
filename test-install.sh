@@ -91,5 +91,45 @@ chk "offline: no clone attempted"           "0" "$(printf '%s' "$out" | grep -c 
 chk "offline: no vault dir created"         "no" "$([ -d "$H6/code/aios-vault" ] && echo yes || echo no)"
 chk "offline: no-vault message still prints" "1" "$(printf '%s' "$out" | grep -c 'AIOS_VAULT_REMOTE')"
 
+# --- omarchy-provision --check: reports exactly what is absent, changes nothing --
+# Stubs stand in for pacman/systemctl/omarchy so this runs on any machine. The
+# fixture has one present and one absent item per kind; the check must name every
+# absent one, none of the present ones, and the stub omarchy must never be called
+# to change anything.
+P="$T/provision"; mkdir -p "$P/bin" "$P/m/hosts" "$P/home/.config/omarchy/plugins/have.plugin" \
+  "$P/home/.local/share/applications" "$P/home/.config/herdr"
+printf '#!/bin/sh\n[ "$1" = -Qq ] && case "$2" in havepkg|haveaur) exit 0;; esac; exit 1\n' > "$P/bin/pacman"
+printf '#!/bin/sh\ncase "$*" in *have.unit*) exit 0;; esac; exit 1\n' > "$P/bin/systemctl"
+printf '#!/bin/sh\necho "$*" >> "%s/omarchy-calls"\n' "$P" > "$P/bin/omarchy"
+chmod +x "$P/bin/"*
+printf '{"bar":{"layout":{"right":[{"id":"omarchy.tray"},{"id":"have.widget"}]}}}\n' > "$P/home/.config/omarchy/shell.json"
+touch "$P/home/.local/share/applications/Have App.desktop"
+printf 'onboarding = false\n' > "$P/home/.config/herdr/config.toml"
+cat > "$P/m/common.manifest" <<'EOF'
+pkg havepkg
+pkg needpkg
+aur haveaur
+aur needaur
+omarchy pkg:havepkg install have
+omarchy pkg:needpkg install need
+plugin have.plugin https://example.invalid/have.git
+plugin need.plugin https://example.invalid/need.git
+bar have.widget
+bar need.widget
+webapp Have App|https://have.invalid|have
+webapp Need App|https://need.invalid|need
+unit system have.unit
+unit system need.unit
+setting herdr/config.toml onboarding false
+setting herdr/config.toml show_agent_labels_on_pane_borders false
+EOF
+out=$(PATH="$P/bin:$PATH" HOME="$P/home" OMARCHY_PROVISION_MANIFESTS="$P/m" \
+  bash "$HERE/linux/bin/omarchy-provision" --check --host nohost 2>&1); rc=$?
+chk "provision check: exit 1 when items are missing" "1" "$rc"
+chk "provision check: counts exactly the 8 absent"   "1" "$(printf '%s' "$out" | grep -c 'nohost: 8 missing')"
+chk "provision check: names no present item"         "0" "$(printf '%s' "$out" | grep -cE 'missing  (pkg havepkg|aur haveaur|omarchy install have$|plugin have\.plugin|bar have\.widget|webapp Have App|system unit have\.unit|setting herdr/config\.toml: onboarding)')"
+chk "provision check: bar keeps manifest order"      "1" "$(printf '%s' "$out" | grep -c 'bar need.widget (after have.widget)')"
+chk "provision check: changed nothing"               "no" "$([ -f "$P/omarchy-calls" ] && echo yes || echo no)"
+
 echo "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# Install the nightly restic -> Backblaze B2 backup on this machine, as root.
+#
+#   sudo restic-setup            install script, units, excludes, credentials, timer
+#   sudo restic-setup --check    change nothing; list what is missing, exit 1 if any
+#
+# Installs /usr/local/bin/<host>-backup (from linux/restic/backup.sh), the
+# <host>-backup.service/.timer units, /etc/restic/excludes, and the /tmp size cap.
+# Credentials are never in this repo: when /root/.restic-env is absent it asks for
+# them and writes it mode 600. Keep them somewhere off this machine too -- the
+# copy here is inside the backup it unlocks.
+set -euo pipefail
+
+DOTFILES_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../.." && pwd)"
+SRC="$DOTFILES_DIR/linux/restic"
+CHECK=0; [ "${1:-}" = --check ] && CHECK=1
+[ "$(id -u)" -eq 0 ] || { echo "run with sudo" >&2; exit 2; }
+HOST="$(hostname)"
+USER_HOME="$(getent passwd "${SUDO_USER:-$(logname 2>/dev/null || echo root)}" | cut -d: -f6)"
+NAME="$HOST-backup"
+ENV=/root/.restic-env
+
+render() { sed "s|@USER_HOME@|$USER_HOME|g; s|@HOST@|$HOST|g" "$1"; }
+
+SERVICE="[Unit]
+Description=Restic backup of $HOST to B2
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/$NAME
+Nice=10
+IOSchedulingClass=idle
+Environment=HOME=/root
+Environment=XDG_CACHE_HOME=/root/.cache
+TimeoutStartSec=2h
+KillSignal=SIGINT"
+
+TIMER="[Unit]
+Description=Nightly restic backup of $HOST
+
+[Timer]
+OnCalendar=*-*-* 01:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target"
+
+# /tmp is tmpfs and these machines run without swap; cap it so a runaway build
+# fills /tmp, not RAM. Canonical rationale: the AIOS vault's tmp-is-ram note.
+TMPCAP="[Mount]
+Options=mode=1777,strictatime,nosuid,nodev,size=3G,nr_inodes=1m"
+
+MISSING=0
+# want <dest> <mode> <content>: install unless the file already matches
+want() {
+  if [ -f "$1" ] && [ "$(cat "$1")" = "$3" ]; then return; fi
+  MISSING=$((MISSING+1)); echo "  missing  $1"
+  [ "$CHECK" -eq 1 ] && return
+  install -Dm"$2" /dev/null "$1"; printf '%s\n' "$3" > "$1"
+}
+
+want "/usr/local/bin/$NAME" 755 "$(render "$SRC/backup.sh")"
+want /etc/restic/excludes 644 "$(cat "$SRC/excludes")"
+want "/etc/systemd/system/$NAME.service" 644 "$SERVICE"
+want "/etc/systemd/system/$NAME.timer" 644 "$TIMER"
+want /etc/systemd/system/tmp.mount.d/size.conf 644 "$TMPCAP"
+# Older installs split the [Service] extras into drop-ins; the unit now carries
+# them, so the drop-ins would only repeat them.
+[ "$CHECK" -eq 0 ] && rm -f "/etc/systemd/system/$NAME.service.d/env.conf" "/etc/systemd/system/$NAME.service.d/timeout.conf"
+
+if [ ! -f "$ENV" ]; then
+  MISSING=$((MISSING+1)); echo "  missing  $ENV (credentials)"
+  if [ "$CHECK" -eq 0 ]; then
+    echo "Restic credentials for $HOST (input for secrets is hidden):"
+    read -rp  "  RESTIC_REPOSITORY (e.g. b2:<bucket>:$HOST): " repo
+    read -rsp "  RESTIC_PASSWORD: " pass; echo
+    read -rp  "  B2_ACCOUNT_ID (key ID): " kid
+    read -rsp "  B2_ACCOUNT_KEY (application key): " key; echo
+    umask 077
+    printf 'RESTIC_REPOSITORY=%q\nRESTIC_PASSWORD=%q\nB2_ACCOUNT_ID=%q\nB2_ACCOUNT_KEY=%q\n' \
+      "$repo" "$pass" "$kid" "$key" > "$ENV"
+    # Prove the credentials open the repo before trusting a nightly timer to them.
+    if ! ( set -a; . "$ENV"; restic cat config >/dev/null ); then
+      echo "  those credentials do not open $repo; left $ENV in place to fix by hand" >&2
+      exit 1
+    fi
+  fi
+fi
+
+if ! systemctl is-enabled -q "$NAME.timer" 2>/dev/null; then
+  MISSING=$((MISSING+1)); echo "  missing  $NAME.timer enabled"
+fi
+if [ "$CHECK" -eq 0 ]; then
+  systemctl daemon-reload
+  systemctl enable --now "$NAME.timer"
+fi
+
+if [ "$CHECK" -eq 1 ]; then
+  [ "$MISSING" -eq 0 ] && { echo "$HOST: backup fully installed"; exit 0; }
+  echo "$HOST: $MISSING missing. Apply with: sudo restic-setup"; exit 1
+fi
+echo "$HOST: backup installed. Next run: $(systemctl list-timers "$NAME.timer" --no-legend | awk '{print $1, $2, $3}')"
+echo "First restore drill: restic snapshots; restic restore latest --target /tmp/r --include $USER_HOME/.bashrc"

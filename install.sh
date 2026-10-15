@@ -117,6 +117,17 @@ if [ "$OS_DIR" = "linux" ] && [ -x linux/bin/setup-printers.sh ]; then
   fi
 fi
 
+# REPORT ONLY, same stance again: the Omarchy layer (packages, installers, shell
+# plugins, bar, web apps, services) is applied by omarchy-provision, which calls
+# sudo. This only counts what it would do. Restic is `sudo restic-setup`.
+if [ "$OS_DIR" = "linux" ] && [ "${DOTFILES_OFFLINE:-0}" != 1 ] && command -v omarchy >/dev/null; then
+  if ! out="$("$DOTFILES_DIR/linux/bin/omarchy-provision" --check 2>&1)"; then
+    echo
+    printf '%s\n' "$out" | tail -1
+    echo "  see the list: $DOTFILES_DIR/linux/bin/omarchy-provision --check"
+  fi
+fi
+
 # ~/.bashrc is a REAL file on Omarchy carrying machine-local content (cargo,
 # gcloud), so link() correctly refuses to replace it. Append one source line
 # instead -- idempotent, and reversible by deleting the two lines.

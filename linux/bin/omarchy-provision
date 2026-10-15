@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+# Bring a fresh Omarchy install up to what this machine carries beyond stock:
+# packages, Omarchy installers, shell plugins, bar layout, web apps, services,
+# a few in-place settings. Reads linux/omarchy/common.manifest plus
+# linux/omarchy/hosts/<host>.manifest (format documented in common.manifest).
+#
+#   omarchy-provision            apply what is missing (asks for sudo as needed)
+#   omarchy-provision --check    change nothing; list what is missing, exit 1 if any
+#   omarchy-provision --host X   use hosts/X.manifest instead of $(hostname)
+#
+# Separate from install.sh on purpose: install.sh never installs system packages
+# unasked and only names this script. Every step is idempotent: a present item is
+# skipped, so a re-run after a failure picks up where it stopped.
+set -uo pipefail
+
+DOTFILES_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../.." && pwd)"
+MAN_DIR="${OMARCHY_PROVISION_MANIFESTS:-$DOTFILES_DIR/linux/omarchy}"
+CHECK=0
+HOST="$(hostname)"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --check) CHECK=1 ;;
+    --host) HOST="$2"; shift ;;
+    -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
+    *) echo "unknown argument: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+[ "$(id -u)" -eq 0 ] && { echo "run as your user, not root: it calls sudo itself" >&2; exit 2; }
+
+MANIFESTS=("$MAN_DIR/common.manifest")
+if [ -f "$MAN_DIR/hosts/$HOST.manifest" ]; then MANIFESTS+=("$MAN_DIR/hosts/$HOST.manifest")
+else echo "note: no hosts/$HOST.manifest, applying common.manifest only"; fi
+
+SHELL_JSON="$HOME/.config/omarchy/shell.json"
+APPS="$HOME/.local/share/applications"
+MISSING=0
+missing() { MISSING=$((MISSING+1)); echo "  missing  $*"; }
+has_pkg() { pacman -Qq "$1" >/dev/null 2>&1; }
+on_bar() { jq -e --arg id "$1" '[.bar.layout[][]?.id] | index($id) != null' "$SHELL_JSON" >/dev/null 2>&1; }
+
+entries() { for m in "${MANIFESTS[@]}"; do grep -vE '^[[:space:]]*(#|$)' "$m"; done; }
+
+# Packages first and batched: one pacman transaction instead of one per line.
+pkgs=(); aurs=()
+while read -r kind name _; do
+  case "$kind" in
+    pkg) has_pkg "$name" || pkgs+=("$name") ;;
+    aur) has_pkg "$name" || aurs+=("$name") ;;
+  esac
+done < <(entries)
+echo "packages"
+for p in "${pkgs[@]}"; do missing "pkg $p"; done
+for p in "${aurs[@]}"; do missing "aur $p"; done
+if [ "$CHECK" -eq 0 ]; then
+  [ ${#pkgs[@]} -gt 0 ] && omarchy pkg add "${pkgs[@]}"
+  [ ${#aurs[@]} -gt 0 ] && omarchy pkg aur add "${aurs[@]}"
+fi
+
+echo "everything else"
+bar_prev=omarchy.tray
+while read -r kind rest; do
+  case "$kind" in
+    pkg|aur) ;;
+    omarchy)
+      read -r probe args <<<"$rest"
+      case "$probe" in
+        pkg:*) has_pkg "${probe#pkg:}" && continue ;;
+        cmd:*) command -v "${probe#cmd:}" >/dev/null && continue ;;
+      esac
+      missing "omarchy $args"
+      # shellcheck disable=SC2086  # args is a word list by design
+      [ "$CHECK" -eq 0 ] && omarchy $args
+      ;;
+    plugin)
+      read -r id url <<<"$rest"
+      [ -d "$HOME/.config/omarchy/plugins/$id" ] && continue
+      missing "plugin $id"
+      [ "$CHECK" -eq 0 ] && omarchy plugin add "$url" --yes
+      ;;
+    bar)
+      id="$rest"; prev="$bar_prev"; bar_prev="$id"
+      on_bar "$id" && continue
+      missing "bar $id (after $prev)"
+      # A plugin added with --yes stays disabled; enabling with a placement both
+      # turns it on and puts it on the bar. An already-enabled one just gets placed.
+      if [ "$CHECK" -eq 0 ]; then
+        if omarchy plugin list --json | jq -e --arg id "$id" 'any(.[]; .id == $id and .enabled)' >/dev/null 2>&1
+        then omarchy bar put "$id" --after "$prev"
+        else omarchy plugin enable "$id" --after "$prev"; fi
+      fi
+      ;;
+    webapp)
+      IFS='|' read -r name url icon <<<"$rest"
+      [ -f "$APPS/$name.desktop" ] && continue
+      missing "webapp $name"
+      [ "$CHECK" -eq 0 ] && omarchy webapp install "$name" "$url" "$icon"
+      ;;
+    unit)
+      read -r scope unit <<<"$rest"
+      if [ "$scope" = user ]; then
+        systemctl --user is-enabled -q "$unit" 2>/dev/null && continue
+        missing "user unit $unit"
+        [ "$CHECK" -eq 0 ] && systemctl --user enable --now "$unit"
+      else
+        systemctl is-enabled -q "$unit" 2>/dev/null && continue
+        missing "system unit $unit"
+        [ "$CHECK" -eq 0 ] && sudo systemctl enable --now "$unit"
+      fi
+      ;;
+    file)
+      read -r src dest <<<"$rest"
+      dest="${dest/#\~/$HOME}"
+      cmp -s "$DOTFILES_DIR/$src" "$dest" && continue
+      missing "file $dest (from $src)"
+      if [ "$CHECK" -eq 0 ]; then
+        [ -e "$dest" ] && cp -p "$dest" "$dest.bak.$(date +%s)"
+        mkdir -p "$(dirname "$dest")" && cp "$DOTFILES_DIR/$src" "$dest"
+      fi
+      ;;
+    setting)
+      read -r file key value <<<"$rest"
+      f="$HOME/.config/$file"
+      grep -Eq "^$key[[:space:]]*=[[:space:]]*$value[[:space:]]*$" "$f" 2>/dev/null && continue
+      if [ ! -f "$f" ]; then missing "setting $file: $key (file absent; install its app first)"; continue; fi
+      missing "setting $file: $key = $value"
+      if [ "$CHECK" -eq 0 ]; then
+        if grep -Eq "^$key[[:space:]]*=" "$f"; then sed -i -E "s|^$key[[:space:]]*=.*|$key = $value|" "$f"
+        else printf '%s = %s\n' "$key" "$value" >> "$f"; fi
+      fi
+      ;;
+    pandoc)
+      command -v pandoc >/dev/null && continue
+      missing "pandoc"
+      [ "$CHECK" -eq 1 ] && continue
+      # pandoc-cli is not built for every architecture (absent on aarch64); the
+      # upstream static release covers both.
+      if pacman -Si pandoc-cli >/dev/null 2>&1; then omarchy pkg add pandoc-cli
+      else
+        arch=$(uname -m); case "$arch" in aarch64) arch=arm64 ;; x86_64) arch=amd64 ;; esac
+        url=$(curl -fsSL https://api.github.com/repos/jgm/pandoc/releases/latest \
+          | jq -r --arg a "linux-$arch.tar.gz" '.assets[] | select(.name | endswith($a)) | .browser_download_url' | head -1)
+        tmp=$(mktemp -d) && curl -fsSL "$url" | tar -xz -C "$tmp" \
+          && install -Dm755 "$tmp"/pandoc-*/bin/pandoc "$HOME/.local/bin/pandoc"
+        rm -rf "$tmp"
+      fi
+      ;;
+    manual)
+      read -r name note <<<"$rest"
+      command -v "$name" >/dev/null && continue
+      missing "manual $name: $note"
+      ;;
+    backup)
+      systemctl is-enabled -q "$HOST-backup.timer" 2>/dev/null && continue
+      missing "backup timer $HOST-backup.timer: run  sudo $DOTFILES_DIR/linux/bin/restic-setup"
+      ;;
+    *) echo "  unknown manifest kind: $kind" >&2 ;;
+  esac
+done < <(entries)
+
+echo
+if [ "$CHECK" -eq 1 ]; then
+  [ "$MISSING" -eq 0 ] && { echo "$HOST: nothing missing"; exit 0; }
+  echo "$HOST: $MISSING missing. Apply with: omarchy-provision"; exit 1
+fi
+echo "$HOST: done ($MISSING item(s) were missing). Verify with: omarchy-provision --check"

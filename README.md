@@ -23,6 +23,30 @@ file that's already at the destination.
 On macOS it also runs `brew bundle` against `macos/Brewfile`. On Linux it
 **reports** anything missing from `linux/packages.txt` and installs nothing.
 
+## Rebuilding an Omarchy machine
+
+Everything a machine carries beyond a stock Omarchy install lives in
+`linux/omarchy/common.manifest` plus `linux/omarchy/hosts/<hostname>.manifest`:
+packages, AUR packages, Omarchy installers, shell plugins, bar order, web apps,
+services and a few in-place settings. The format is documented at the top of
+`common.manifest`. `install.sh` only reports the count; applying takes sudo:
+
+```bash
+omarchy-provision --check     # what is missing, changes nothing
+omarchy-provision             # install it (idempotent; re-run after a failure)
+sudo ~/dotfiles/linux/bin/restic-setup   # nightly restic -> B2; asks for credentials
+```
+
+Then restore data from restic **selectively** (`restic restore latest --target
+... --include ~/code` and the like), never all of `~/.config` over a fresh
+install: that overwrites the newer Omarchy defaults the install just wrote.
+
+Order on a dead laptop: install Omarchy, clone this repo, `install.sh`,
+`omarchy-provision`, `restic-setup`, restore data. Restic credentials are not in
+this repo; keep them somewhere off the machine. When you add something by hand,
+add its line to the host manifest, and `omarchy-provision --check` on the live
+machine should say "nothing missing".
+
 It also restores Claude Code: `claude/setup.sh` merges `claude/settings.base.json`
 into `~/.claude/settings.json` (merged, not linked — Claude Code writes that file),
 installs the listed plugins, and clones third-party skills. A private second
