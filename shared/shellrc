@@ -48,12 +48,16 @@ export EDITOR=nvim VISUAL=nvim
 
 [ -f "$HOME/.aliases" ] && . "$HOME/.aliases"
 
-export PATH="$HOME/.bin:$PATH"
-# ~/.zshenv may already have added this for non-interactive zsh; don't stack it.
-case ":$PATH:" in
-  *":$HOME/.local/bin:"*) ;;
-  *) export PATH="$HOME/.local/bin:$PATH" ;;
-esac
+# Prepend once: a nested shell re-sources this file and would stack every entry
+# again. (~/.zshenv already adds ~/.local/bin for non-interactive zsh.)
+_path_prepend() {
+  case ":$PATH:" in
+    *":$1:"*) ;;
+    *) export PATH="$1:$PATH" ;;
+  esac
+}
+_path_prepend "$HOME/.bin"
+_path_prepend "$HOME/.local/bin"
 
 # Guarded: unguarded, `direnv hook` prints an error on EVERY new shell on a box
 # without direnv, and `$(go env GOPATH)` with no go appends an empty PATH element.
@@ -69,7 +73,8 @@ fi
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+_path_prepend "$BUN_INSTALL/bin"
+unset -f _path_prepend
 [ -s "$BUN_INSTALL/_bun" ] && . "$BUN_INSTALL/_bun"
 
 [ -f "$HOME/.fzf.$_shell_name" ] && . "$HOME/.fzf.$_shell_name"
