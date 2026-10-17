@@ -39,7 +39,7 @@ alias todo='$EDITOR ~/code/Notes/todo.md'
 alias start='$EDITOR ~/code/Notes/day-start-checklist.md'
 alias notes="cd ~/code/Notes ; $EDITOR ."
 alias code='cd ~/code'
-alias gclean="git branch | grep -vE '(main|master|staging|develop)' | xargs git branch -D"
+alias gclean="git for-each-ref --format='%(refname:short)' refs/heads | grep -vxE 'main|master|staging|develop' | xargs -r git branch -D"
 alias gua="ls | xargs -P10 -I{} git -C {} pull"
 alias gmc-main="ls | xargs -P10 -I{} git -C {} checkout main"
 alias gad='git add --all .'

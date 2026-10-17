@@ -15,7 +15,6 @@
   pf = push --force-with-lease
 	st = status
   l = log --pretty=colored
-  dms = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative master..staging
 	br = branch
   # origin's default branch (main/master), main when origin/HEAD is unset.
   # origin/HEAD is set by the remote, and the name lands unquoted in gdm/review/
