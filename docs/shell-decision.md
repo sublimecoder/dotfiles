@@ -79,7 +79,7 @@ unconfigured zsh is strictly worse than bash: no `g`, no completions, no prompt.
 Closed 2026-09-05. The split that matters is **portable vs not**, not zsh vs bash:
 
 - `shared/shellrc` — the portable core, sourced by both shells. Functions from
-  `~/.shell/functions/` (`g`, `mcd`, `envup`), `~/.aliases`, `PATH`, and guarded
+  `~/.shell/functions/` (`g`, `mcd`), `~/.aliases`, `PATH`, and guarded
   `direnv` / `mise` / `go` / `bun` / `fzf`.
 - `shared/zsh/` — only what is genuinely zsh: `change-extension` (uses
   `foreach` and glob qualifiers), the completions, and `zsh/configs/*`.

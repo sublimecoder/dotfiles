@@ -22,7 +22,7 @@ else
   _shell_name=sh
 fi
 
-# Portable functions: g, mcd, envup. Guarded because the directory does not
+# Portable functions: g, mcd. Guarded because the directory does not
 # exist until install.sh has run, and an unmatched glob is an ERROR in zsh
 # rather than a silent no-op.
 #

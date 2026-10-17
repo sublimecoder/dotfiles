@@ -179,4 +179,10 @@ Reasoning, what bash actually costs, and how to reverse it:
 default branch, or `main` when `origin/HEAD` is unset (fix that per repo with
 `git remote set-head origin -a`).
 
+A project `.env` loads through direnv, not a shell function: once per repo,
+`echo dotenv > .envrc && direnv allow`. Nothing loads until you allow it, an
+edited `.envrc` is blocked again until re-allowed, and `.env` reloads on change
+and unloads when you `cd` out. Edits to `.env` itself are not re-approved, so
+read a cloned repo's `.env` before the first `direnv allow`.
+
 If you want to copy any of this, go ahead.
