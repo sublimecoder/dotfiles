@@ -3,6 +3,12 @@
 # Parsed, not sourced: `. .env` would run any command a cloned repo's .env
 # carries, and the old `export $(sed ...)` split values on spaces and globbed
 # them. Handles KEY=value, `export KEY=value`, and one layer of '' or "" quotes.
+#
+# Parsing alone is not enough: some variables are run by the shell or by tools
+# (PROMPT_COMMAND at every prompt, LD_PRELOAD in every binary, PATH picking which
+# `git` runs). Those names are refused with a warning; export them by hand if
+# you mean it. shortcut: denylist, not exhaustive; switch to an allowlist if
+# envup is ever run on untrusted repos as a habit.
 envup() {
   if [ ! -f .env ]; then
     echo 'No .env file found' 1>&2
@@ -17,6 +23,13 @@ envup() {
     line="${line#export }"
     key="${line%%=*}"
     val="${line#*=}"
+    case "$key" in
+      ''|[0-9]*|*[!A-Za-z0-9_]*) echo "envup: skip invalid name: $key" 1>&2; continue ;;
+      PATH|FPATH|CDPATH|IFS|ENV|BASH_ENV|ZDOTDIR|SHELLOPTS|BASHOPTS|PROMPT_COMMAND| \
+      PS[0-4]|PROMPT|RPROMPT|RPS[12]|LD_*|DYLD_*|GIT_*|*_COMMAND|EDITOR|VISUAL|PAGER| \
+      NODE_OPTIONS|PERL5OPT|PYTHONSTARTUP|RUBYOPT)
+        echo "envup: refused (shell or tools would run it): $key" 1>&2; continue ;;
+    esac
     case "$val" in
       \"*\") val="${val#\"}"; val="${val%\"}" ;;
       \'*\') val="${val#\'}"; val="${val%\'}" ;;
