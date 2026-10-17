@@ -81,8 +81,8 @@ there.)
 - `shared/shellrc` — the portable core (functions, aliases, PATH, `EDITOR`)
   sourced by both zsh and bash
 - `shared/config/nvim/` — Neovim (LazyVim); see [Editor](#editor)
-- `shared/vimrc`, `shared/vim/` — the old vim config, kept until the LazyVim
-  trial on the Mac is done, then deleted
+- `shared/vimrc`, `shared/vim/` — a plain-vim fallback with no plugins; the old
+  vim-plug/ALE setup is in git history
 - `shared/gitconfig`, `shared/gitmessage`, `shared/git_template/` — git
 - `shared/bin/` — small personal scripts, on `$PATH` via `install.sh`
   (`dotfiles-doctor`, `herdr-run-below`, the `git-*` helpers)

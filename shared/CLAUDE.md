@@ -61,7 +61,9 @@ Arch equivalent and is hand-maintained.
 
 Mac runs zsh; Omarchy/Arch runs bash, the distribution's default. zsh is not
 installed on Linux. `shared/zsh/` is linked there and goes unused, which is the
-correct outcome of a shared/ dir — not a bug. Do not `chsh` on either machine.
+correct outcome of a shared/ dir — not a bug. So a Linux-only shell setting goes
+in `linux/shell/functions/` (sourced by `~/.shellrc` in bash), never in a
+`linux/zsh/configs/` file nothing would load. Do not `chsh` on either machine.
 Reasoning: `docs/shell-decision.md`.
 
 ## Tooling philosophy
