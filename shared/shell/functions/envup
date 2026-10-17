@@ -24,10 +24,14 @@ envup() {
     key="${line%%=*}"
     val="${line#*=}"
     case "$key" in
-      ''|[0-9]*|*[!A-Za-z0-9_]*) echo "envup: skip invalid name: $key" 1>&2; continue ;;
-      PATH|FPATH|CDPATH|IFS|ENV|BASH_ENV|ZDOTDIR|SHELLOPTS|BASHOPTS|PROMPT_COMMAND| \
-      PS[0-4]|PROMPT|RPROMPT|RPS[12]|LD_*|DYLD_*|GIT_*|*_COMMAND|EDITOR|VISUAL|PAGER| \
-      NODE_OPTIONS|PERL5OPT|PYTHONSTARTUP|RUBYOPT)
+      # Uppercase only: zsh ties lowercase path/fpath/cdpath/manpath to the
+      # uppercase ones, so `path=...` would walk straight past the list below.
+      ''|[0-9]*|*[!A-Z0-9_]*) echo "envup: skip (not an UPPER_CASE name): $key" 1>&2; continue ;;
+      PATH|FPATH|CDPATH|MANPATH|IFS|ENV|BASH_ENV|ZDOTDIR|SHELLOPTS|BASHOPTS|HOME| \
+      PROMPT_COMMAND|PS[0-4]|PROMPT|RPROMPT|RPS[12]|HISTFILE|TMPDIR|TERMINFO|XDG_*| \
+      LD_*|DYLD_*|GIT_*|*_COMMAND|*ASKPASS|EDITOR|VISUAL|PAGER|MANPAGER|BROWSER| \
+      LESSOPEN|LESSCLOSE|NODE_OPTIONS|NODE_PATH|PERL5OPT|PERL5LIB|PYTHONSTARTUP| \
+      PYTHONPATH|RUBYOPT|RUBYLIB|JAVA_TOOL_OPTIONS)
         echo "envup: refused (shell or tools would run it): $key" 1>&2; continue ;;
     esac
     case "$val" in

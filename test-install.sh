@@ -128,10 +128,11 @@ chk "mac: EDITOR is nvim"                   "nvim" "$(HOME="$M/home" bash -c '. 
 
 # --- envup: parses .env, never runs it ------------------------------------------
 E="$T/envup"; mkdir -p "$E"
-printf '  # c\nexport B="two words"\nD=$(touch %s/pwned)\nX=a=b\r\nPROMPT_COMMAND=touch %s/pwned\nLD_PRELOAD=/x.so\n' "$E" "$E" > "$E/.env"
+printf '  # c\nexport B="two words"\nD=$(touch %s/pwned)\nX=a=b\r\nPROMPT_COMMAND=touch %s/pwned\nLD_PRELOAD=/x.so\npath=/evil\n' "$E" "$E" > "$E/.env"
 got="$(cd "$E" && bash -c '. "$1"; envup 2>/dev/null; printf "[%s]" "$B" "$X"' _ "$HERE/shared/shell/functions/envup")"
 chk "envup: quotes and = in values"          "[two words][a=b]" "$got"
 chk "envup: command substitution not run"    "no" "$([ -e "$E/pwned" ] && echo yes || echo no)"
+chk "envup: lowercase (zsh-tied) name refused" "no" "$(cd "$E" && bash -c '. "$1"; envup 2>/dev/null; [ -n "${path-}" ] && echo yes || echo no' _ "$HERE/shared/shell/functions/envup")"
 chk "envup: shell-run names refused"         "[][]" "$(cd "$E" && bash -c '. "$1"; envup 2>/dev/null; printf "[%s]" "${PROMPT_COMMAND-}" "${LD_PRELOAD-}"' _ "$HERE/shared/shell/functions/envup")"
 
 # --- git default-branch: origin/HEAD when set, main otherwise --------------------
