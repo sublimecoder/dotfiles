@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# One look at whether this machine matches the dotfiles: editor starts clean,
+# Omarchy layer complete, ssh agent reachable, signed commits work.
+# Changes nothing. Exits non-zero when any check fails.
+set -u
+
+fails=0
+ok()   { echo "  ok    $1"; }
+bad()  { echo "  FAIL  $1"; fails=$((fails + 1)); }
+skip() { echo "  skip  $1"; }
+
+# nvim: any E-number or Lua error on a plain startup means a broken config.
+if command -v nvim >/dev/null; then
+  out="$(nvim --headless +qa 2>&1)"   # no timeout(1): macOS has none
+  if printf '%s' "$out" | grep -qE 'E[0-9]+:|Error'; then
+    bad "nvim starts with errors:"; printf '%s\n' "$out" | grep -E 'E[0-9]+:|Error' | head -5 | sed 's/^/          /'
+  else
+    ok "nvim starts clean"
+  fi
+else
+  bad "nvim not installed"
+fi
+
+[ "${EDITOR:-}" = nvim ] && ok "EDITOR=nvim" || bad "EDITOR is '${EDITOR:-}', want nvim (is ~/.shellrc sourced?)"
+
+# Called from the repo, not PATH: ~/.bin only carries it after install.sh re-runs.
+provision="$(dirname "$(readlink -f "$0")")/../../linux/bin/omarchy-provision"
+if [ -x "$provision" ] && command -v omarchy >/dev/null; then
+  if out="$("$provision" --check 2>&1)"; then
+    ok "omarchy-provision: nothing missing"
+  else
+    bad "omarchy-provision: $(printf '%s\n' "$out" | tail -1)"
+  fi
+else
+  skip "omarchy-provision (not an Omarchy machine)"
+fi
+
+# ssh-add -l: 0 = keys loaded, 1 = agent reachable but empty, 2 = no agent.
+ssh-add -l >/dev/null 2>&1; rc=$?
+case $rc in
+  0) ok "ssh agent has keys" ;;
+  1) ok "ssh agent reachable (no keys yet; AddKeysToAgent loads on first use)" ;;
+  *) bad "no ssh agent at SSH_AUTH_SOCK='${SSH_AUTH_SOCK:-}'" ;;
+esac
+
+# Signed commit in a throwaway repo with no template hooks.
+repo="$(mktemp -d)"; trap 'rm -rf "$repo"' EXIT
+git init -q --template= "$repo"
+if git -C "$repo" commit -q --allow-empty -S -m doctor >/dev/null 2>&1 \
+   && git -C "$repo" verify-commit HEAD >/dev/null 2>&1; then
+  ok "signed commit verifies"
+else
+  bad "signed commit failed (git -C <repo> commit -S --allow-empty -m x to see why)"
+fi
+
+echo
+[ "$fails" -eq 0 ] && echo "all good" || echo "$fails check(s) failed"
+[ "$fails" -eq 0 ]

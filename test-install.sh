@@ -21,6 +21,8 @@ mkdir -p "$T/bin"; printf '#!/bin/sh\necho STUB-BREW\n' > "$T/bin/brew"; chmod +
 # Same reason for mise: `mise install` materializes the global tool list, and a
 # real one here would download node/uv into the scratch HOME over the network.
 printf '#!/bin/sh\necho STUB-MISE "$@"\n' > "$T/bin/mise"; chmod +x "$T/bin/mise"
+# And nvim: `Lazy! restore` would clone every plugin over the network.
+printf '#!/bin/sh\necho STUB-NVIM "$@"\n' > "$T/bin/nvim"; chmod +x "$T/bin/nvim"
 setup() { HOME="$1" DOTFILES_OFFLINE=1 bash "$HERE/claude/setup.sh" 2>&1; }
 BASE="$HERE/claude/settings.base.json"
 
@@ -76,6 +78,67 @@ chk "chain: brew skipped offline"           "0" "$(printf '%s' "$out" | grep -c 
 chk "chain: mise install skipped offline"   "0" "$(printf '%s' "$out" | grep -c 'STUB-MISE install')"
 chk "chain: mise tool list linked"          "1" "$([ -L "$H4/.config/mise/config.toml" ] && echo 1 || echo 0)"
 chk "chain: ssh agent env.d linked"         "1" "$([ -L "$H4/.config/environment.d/ssh-agent.conf" ] && echo 1 || echo 0)"
+chk "chain: nvim init.lua linked"           "1" "$([ -L "$H4/.config/nvim/init.lua" ] && echo 1 || echo 0)"
+chk "chain: nvim lockfile linked"           "1" "$([ -L "$H4/.config/nvim/lazy-lock.json" ] && echo 1 || echo 0)"
+chk "chain: nvim restore skipped offline"   "0" "$(printf '%s' "$out" | grep -c 'STUB-NVIM')"
+# shellrc in bash: EDITOR set, and `v` expands at use rather than being frozen
+# empty at definition (VISUAL was once zsh-only, so bash got `alias v=''`).
+chk "shellrc: EDITOR is nvim"               "nvim" "$(HOME="$H4" bash -c '. "$HOME/.shellrc" >/dev/null 2>&1; echo "$EDITOR"')"
+chk "shellrc: v alias expands at use"       "alias v='\$VISUAL'" "$(HOME="$H4" bash -c '. "$HOME/.shellrc" >/dev/null 2>&1; alias v')"
+
+# --- a ~/.config/nvim this repo does not own is moved aside whole -------------
+# Mac: an init.vim beside the linked init.lua makes nvim refuse to start.
+H7="$T/old-nvim"; mkdir -p "$H7/.config/nvim"; echo 'source ~/.vimrc' > "$H7/.config/nvim/init.vim"
+PATH="$T/bin:$PATH" HOME="$H7" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" >/dev/null 2>&1
+chk "mac: old init.vim gone from nvim dir"  "no" "$([ -e "$H7/.config/nvim/init.vim" ] && echo yes || echo no)"
+chk "mac: old dir kept, init.vim inside"    "1" "$(ls "$H7"/.config/nvim.pre-dotfiles-*/init.vim 2>/dev/null | grep -c .)"
+chk "mac: init.lua linked in its place"     "1" "$([ -L "$H7/.config/nvim/init.lua" ] && echo 1 || echo 0)"
+# Fresh Omarchy: the LazyVim starter as real files, which link() would skip.
+H8="$T/starter-nvim"; mkdir -p "$H8/.config/nvim/lua/config"
+echo 'require("config.lazy")' > "$H8/.config/nvim/init.lua"; echo '-- starter' > "$H8/.config/nvim/lua/config/options.lua"
+PATH="$T/bin:$PATH" HOME="$H8" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" >/dev/null 2>&1
+chk "omarchy: starter options.lua replaced" "1" "$([ -L "$H8/.config/nvim/lua/config/options.lua" ] && echo 1 || echo 0)"
+chk "omarchy: starter kept aside"           "1" "$(ls -d "$H8"/.config/nvim.pre-dotfiles-* 2>/dev/null | grep -c .)"
+# Second run on an owned config moves nothing.
+PATH="$T/bin:$PATH" HOME="$H8" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" >/dev/null 2>&1
+chk "owned config: second run moves nothing" "1" "$(ls -d "$H8"/.config/nvim.pre-dotfiles-* 2>/dev/null | grep -c .)"
+
+# --- macOS run (uname stubbed): same nvim/editor result, Mac files instead of Linux --
+M="$T/mac"; mkdir -p "$M/bin" "$M/home"
+printf '#!/bin/sh\n[ "$1" = -s ] && echo Darwin || /usr/bin/uname "$@"\n' > "$M/bin/uname"; chmod +x "$M/bin/uname"
+PATH="$M/bin:$T/bin:$PATH" HOME="$M/home" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" >/dev/null 2>&1
+chk "mac: nvim init.lua linked"             "1" "$([ -L "$M/home/.config/nvim/init.lua" ] && echo 1 || echo 0)"
+chk "mac: macos.zsh linked"                 "1" "$([ -L "$M/home/.zsh/configs/macos.zsh" ] && echo 1 || echo 0)"
+chk "mac: linux.zsh not linked"             "no" "$([ -e "$M/home/.zsh/configs/linux.zsh" ] && echo yes || echo no)"
+chk "mac: EDITOR is nvim"                   "nvim" "$(HOME="$M/home" bash -c '. "$HOME/.shellrc" >/dev/null 2>&1; echo "$EDITOR"')"
+
+# --- git default-branch: origin/HEAD when set, main otherwise --------------------
+G="$T/gitdb"; git init -q --template= -b master "$G"
+chk "default-branch: no origin/HEAD is main" "main" "$(git -C "$G" -c include.path="$HERE/shared/gitconfig" default-branch)"
+git -C "$G" commit -q --allow-empty --no-gpg-sign -m x
+git -C "$G" update-ref refs/remotes/origin/master HEAD
+git -C "$G" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/master
+chk "default-branch: follows origin/HEAD"   "master" "$(git -C "$G" -c include.path="$HERE/shared/gitconfig" default-branch)"
+
+# --- herdr-run-below: reuse the pane below, split one off only when none ------
+R="$T/herdr"; mkdir -p "$R/bin"
+cat > "$R/bin/herdr" <<EOF
+#!/bin/sh
+echo "\$*" >> "$R/calls"
+case "\$2" in
+  neighbor) echo '{"result":{"neighbor":{"pane_id":"'"\$(cat "$R/below")"'"}}}' ;;
+  split)    echo '{"result":{"pane":{"pane_id":"new"}}}' ;;
+esac
+EOF
+chmod +x "$R/bin/herdr"
+echo p1 > "$R/below"; : > "$R/calls"
+PATH="$R/bin:$PATH" HERDR_PANE_ID=p1 bash "$HERE/shared/bin/herdr-run-below" "mix test"
+chk "herdr: no pane below, splits one"      "1" "$(grep -c '^pane split p1 --direction down' "$R/calls")"
+chk "herdr: runs in the new pane"           "1" "$(grep -c '^pane run new cd .* && mix test$' "$R/calls")"
+echo p2 > "$R/below"; : > "$R/calls"
+PATH="$R/bin:$PATH" HERDR_PANE_ID=p1 bash "$HERE/shared/bin/herdr-run-below" "mix test"
+chk "herdr: pane below, no split"           "0" "$(grep -c '^pane split' "$R/calls")"
+chk "herdr: runs in the pane below"         "1" "$(grep -c '^pane run p2 ' "$R/calls")"
 
 H5="$T/novault"; mkdir -p "$H5"
 out=$(PATH="$T/bin:$PATH" HOME="$H5" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" 2>&1)

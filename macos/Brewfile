@@ -17,10 +17,14 @@ brew "direnv"
 brew "docker"
 # Docker CLI plugin for extended build capabilities with BuildKit
 brew "docker-buildx"
+# Simple, fast and user-friendly alternative to find (LazyVim pickers)
+brew "fd"
 # Command-line tools for fly.io services
 brew "flyctl"
 # Monitor a directory for changes and run a shell command
 brew "fswatch"
+# Command-line fuzzy finder (shell fzf.zsh, old vimrc)
+brew "fzf"
 # GitHub command-line tool
 brew "gh"
 # Distributed revision control system
@@ -33,6 +37,8 @@ brew "imagemagick"
 brew "jq"
 # Modern load testing tool, using Go and JavaScript
 brew "k6"
+# Simple terminal UI for git commands (LazyVim <leader>gg)
+brew "lazygit"
 # YAML Parser
 brew "libyaml"
 # Polyglot runtime manager (asdf rust clone)
@@ -79,6 +85,8 @@ brew "testssl"
 brew "the_silver_searcher"
 # Terminal multiplexer
 brew "tmux"
+# Parser generator; nvim-treesitter needs it to build parsers
+brew "tree-sitter-cli"
 # Vi 'workalike' with many additional features
 brew "vim"
 # Watch files and take action when they change

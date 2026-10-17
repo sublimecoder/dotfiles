@@ -42,6 +42,10 @@ if [ -d "$HOME/.shell/functions" ]; then
   unset _f
 fi
 
+# nvim on both machines. Overrides Omarchy's omarchy-launch-editor, which
+# resolves to nvim here anyway. Set before ~/.aliases, which reads both.
+export EDITOR=nvim VISUAL=nvim
+
 [ -f "$HOME/.aliases" ] && . "$HOME/.aliases"
 
 export PATH="$HOME/.bin:$PATH"

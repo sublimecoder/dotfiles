@@ -78,6 +78,20 @@ if [ -f shared/claude/CLAUDE.md ] && [ -e "$GLOBAL_CLAUDE_MD" ] && [ ! -L "$GLOB
   echo "moved real $GLOBAL_CLAUDE_MD aside -> $aside (diff it for machine-local lines worth keeping)"
 fi
 
+# Same move-aside, for a ~/.config/nvim this repo does not own: the Mac's old
+# init.vim (it sourced ~/.vimrc; beside init.lua nvim refuses to start with
+# "Conflicting configs"), or the LazyVim starter a fresh Omarchy install copies
+# in as REAL files, which link() would skip one by one. Ours is recognisable by
+# init.lua being a symlink. The whole directory moves (or, if it is itself a
+# symlink, only the link), so nothing is half-merged.
+NVIM_DIR="$HOME/.config/nvim"
+if [ -f shared/config/nvim/init.lua ] && { [ -e "$NVIM_DIR" ] || [ -L "$NVIM_DIR" ]; } \
+   && [ ! -L "$NVIM_DIR/init.lua" ]; then
+  aside="$NVIM_DIR.pre-dotfiles-$(date +%Y%m%dT%H%M%S)"
+  mv "$NVIM_DIR" "$aside"
+  echo "moved $NVIM_DIR aside -> $aside (not this repo's config)"
+fi
+
 link_top  "shared"
 link_tree "shared"
 link_top  "$OS_DIR"
@@ -161,6 +175,14 @@ fi
 # tool list it never acts on.
 if [ "${DOTFILES_OFFLINE:-0}" != 1 ] && command -v mise >/dev/null; then
   mise install || echo "mise install failed -- tools stay absent; re-run: mise install"
+fi
+
+# Plugins at the versions pinned in shared/config/nvim/lazy-lock.json, so a fresh
+# machine opens nvim ready instead of installing on first launch. User-local
+# (~/.local/share/nvim), no sudo -- same category as mise above.
+if [ "${DOTFILES_OFFLINE:-0}" != 1 ] && command -v nvim >/dev/null; then
+  nvim --headless "+Lazy! restore" +qa \
+    || echo "nvim plugin restore failed -- re-run: nvim --headless '+Lazy! restore' +qa"
 fi
 
 # Claude Code: the public half (settings merge, plugins, skills). See

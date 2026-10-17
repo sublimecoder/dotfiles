@@ -16,6 +16,8 @@
   l = log --pretty=colored
   dms = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative master..staging
 	br = branch
+  # origin's default branch (main/master), main when origin/HEAD is unset
+  default-branch = "!b=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD) && echo ${b#origin/} || echo main"
 [core]
   excludesfile = ~/.gitignore
   autocrlf = input

@@ -29,7 +29,6 @@ else
   Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 endif
 
-Plug 'catppuccin/vim', { 'as': 'catppuccin' }
 Plug 'junegunn/fzf.vim'
 Plug 'elixir-lang/vim-elixir'
 Plug 'fatih/vim-go'

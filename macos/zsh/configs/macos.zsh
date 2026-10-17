@@ -33,3 +33,6 @@ alias vault='cd "$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents" &&
 # works on both machines.
 alias clip-copy='pbcopy'
 alias clip-paste='pbpaste'
+
+# Homebrew's redis.conf path, Mac-only (moved out of shared/aliases).
+alias startredis='redis-server /usr/local/etc/redis.conf &'

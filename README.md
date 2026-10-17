@@ -56,6 +56,12 @@ installer is run afterwards when present; on a fresh machine pass its remote onc
 AIOS_VAULT_REMOTE=<git url> ~/dotfiles/install.sh
 ```
 
+Check a machine any time (changes nothing):
+
+```bash
+dotfiles-doctor   # nvim starts clean, EDITOR, omarchy-provision --check, ssh agent, signed commit
+```
+
 On a fresh machine, also point git at the commit template:
 
 ```bash
@@ -66,7 +72,12 @@ git config --global init.templatedir ~/.git_template
 
 - `shared/zshrc`, `shared/aliases`, `shared/zshenv` — shell
 - `shared/zsh/` — functions, completions, and config fragments loaded by `zshrc`
-- `shared/vimrc`, `shared/vim/` — vim (being retired; see the port plan)
+- `shared/config/nvim/` — Neovim: LazyVim with the jellybeans colorscheme, the
+  old vimrc's options and keymaps, and vim-test running in the herdr pane below
+  the editor (`shared/bin/herdr-run-below`). `lazy-lock.json` pins plugin
+  versions; `install.sh` restores them
+- `shared/vimrc`, `shared/vim/` — the old vim config, kept for a trial period
+  on the Mac and then deleted
 - `shared/gitconfig`, `shared/gitmessage`, `shared/git_template/` — git
 - `shared/bin/` — small personal scripts, on `$PATH` via `install.sh`
 - `macos/` — Brewfile, zprofile, and the Homebrew / gcloud / Android / iCloud

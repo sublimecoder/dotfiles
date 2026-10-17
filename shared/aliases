@@ -2,8 +2,10 @@
 alias ll="ls -al"
 alias ln="ln -v"
 alias mkdir="mkdir -p"
-alias e="$EDITOR"
-alias v="$VISUAL"
+# Single quotes: expanded at use, not frozen at definition (VISUAL was once
+# unset in bash, which made `v` an empty alias).
+alias e='$EDITOR'
+alias v='$VISUAL'
 
 # Pretty print the path
 alias path='echo -e ${PATH//:/\\n}'
@@ -49,7 +51,7 @@ alias gcm="git commit -m"
 alias gco='git checkout'
 alias gd='git diff'
 alias gdc='git diff --cached'
-alias gdm='git diff master'
+alias gdm='git diff $(git default-branch)'
 alias gg='git l'
 alias gp='git push'
 alias gpr='git pull --rebase'
@@ -57,12 +59,11 @@ alias grc='git rebase --continue'
 alias gs='git show'
 alias mm='git checkout main'
 alias repush="gpr && git push"
-alias review="git diff master"
+alias review='git diff $(git default-branch)'
 alias safepush='git pull --rebase && mix deps.get && git push'
 alias so='source ~/.aliases'
 alias sp='safepush'
-alias squash='git rebase -i master'
-alias startredis='redis-server /usr/local/etc/redis.conf &'
+alias squash='git rebase -i $(git default-branch)'
 alias sync='git add -u . && git commit -m "Minor changes. Commit message skipped." && repush'
 alias track='git checkout -t'
 alias u='cd ..'

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Run a command in the herdr pane below the current one, splitting one off when
+# there is none. vim-test's "herdr" strategy calls this (shared/config/nvim).
+# Usage: herdr-run-below <command>
+set -euo pipefail
+
+cmd="${1:?usage: herdr-run-below <command>}"
+self="${HERDR_PANE_ID:?not inside herdr}"
+dir="$(pwd)"
+
+# herdr answers with the pane itself when it has no neighbor in that direction.
+below="$(herdr pane neighbor --pane "$self" --direction down | jq -r '.result.neighbor.pane_id')"
+if [ "$below" = "$self" ]; then
+  below="$(herdr pane split "$self" --direction down --ratio 0.7 --cwd "$dir" --no-focus |
+    jq -r '.result.pane.pane_id')"
+fi
+
+herdr pane run "$below" "cd $(printf %q "$dir") && $cmd" >/dev/null
