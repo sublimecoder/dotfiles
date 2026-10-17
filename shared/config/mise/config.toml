@@ -10,8 +10,10 @@
 [tools]
 claude = "latest"
 codex = "latest"
-elixir = "latest"
-erlang = "latest"
+# Pinned, not "latest": a rebuilt machine must compile the same versions. Keep
+# elixir's -otp-NN suffix matching erlang's major. Bump both with `mise use -g`.
+elixir = "1.20.4-otp-29"
+erlang = "29.1.1"
 gh = "latest"
 node = "latest"
 ruby = "latest"
