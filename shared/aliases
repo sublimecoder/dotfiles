@@ -43,7 +43,7 @@ alias gclean="git branch | grep -vE '(main|master|staging|develop)' | xargs git 
 alias gua="ls | xargs -P10 -I{} git -C {} pull"
 alias gmc-main="ls | xargs -P10 -I{} git -C {} checkout main"
 alias gad='git add --all .'
-alias gag='git add . && git commit --amend --no-edit && git push -f'
+alias gag='git add . && git commit --amend --no-edit && git push --force-with-lease'
 alias gca='git commit -a'
 alias gcaa='git commit -a --amend -C HEAD'
 alias gcl='git clone'
@@ -64,7 +64,8 @@ alias safepush='git pull --rebase && mix deps.get && git push'
 alias so='source ~/.aliases'
 alias sp='safepush'
 alias squash='git rebase -i $(git default-branch)'
-alias sync='git add -u . && git commit -m "Minor changes. Commit message skipped." && repush'
+# Not `sync`: that shadowed /usr/bin/sync, so typing it to flush disks would commit and push.
+alias gsync='git add -u . && git commit -m "Minor changes. Commit message skipped." && repush'
 alias track='git checkout -t'
 alias u='cd ..'
 
