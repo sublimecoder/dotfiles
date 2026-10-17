@@ -1,0 +1,5 @@
+# Wayland clipboard, spelled like the Mac's clip-copy alias (macos/zsh/configs/
+# macos.zsh) so a script written against it works on either machine. A function
+# in ~/.shell/functions, not a zsh alias: Omarchy runs bash, which never reads
+# ~/.zsh/configs/, so the old linux.zsh alias was never defined here.
+clip-copy() { wl-copy "$@"; }

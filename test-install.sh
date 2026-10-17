@@ -87,6 +87,8 @@ chk "chain: nvim restore skipped offline"   "0" "$(printf '%s' "$out" | grep -c 
 # shellrc in bash: EDITOR set, and `v` expands at use rather than being frozen
 # empty at definition (VISUAL was once zsh-only, so bash got `alias v=''`).
 chk "shellrc: EDITOR is nvim"               "nvim" "$(HOME="$H4" bash -c '. "$HOME/.shellrc" >/dev/null 2>&1; echo "$EDITOR"')"
+# Omarchy runs bash, so the Wayland clipboard must come through ~/.shellrc, not ~/.zsh.
+chk "shellrc: clip-copy defined in bash"    "function" "$(HOME="$H4" bash -c '. "$HOME/.shellrc" >/dev/null 2>&1; type -t clip-copy')"
 chk "shellrc: v alias expands at use"       "alias v='\$VISUAL'" "$(HOME="$H4" bash -c '. "$HOME/.shellrc" >/dev/null 2>&1; alias v')"
 
 # --- a ~/.config/nvim this repo does not own is moved aside whole -------------
@@ -112,7 +114,7 @@ printf '#!/bin/sh\n[ "$1" = -s ] && echo Darwin || /usr/bin/uname "$@"\n' > "$M/
 PATH="$M/bin:$T/bin:$PATH" HOME="$M/home" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" >/dev/null 2>&1
 chk "mac: nvim init.lua linked"             "1" "$([ -L "$M/home/.config/nvim/init.lua" ] && echo 1 || echo 0)"
 chk "mac: macos.zsh linked"                 "1" "$([ -L "$M/home/.zsh/configs/macos.zsh" ] && echo 1 || echo 0)"
-chk "mac: linux.zsh not linked"             "no" "$([ -e "$M/home/.zsh/configs/linux.zsh" ] && echo yes || echo no)"
+chk "mac: linux clip-copy not linked"       "no" "$([ -e "$M/home/.shell/functions/clip-copy" ] && echo yes || echo no)"
 chk "mac: EDITOR is nvim"                   "nvim" "$(HOME="$M/home" bash -c '. "$HOME/.shellrc" >/dev/null 2>&1; echo "$EDITOR"')"
 
 # --- git default-branch: origin/HEAD when set, main otherwise --------------------

@@ -1,6 +1,6 @@
 # Shared zshrc — everything true on BOTH machines.
 #
-# Anything OS-specific lives in macos/zsh/configs/ or linux/zsh/configs/ and is
+# Anything OS-specific lives in macos/zsh/configs/ (or linux/shell/, for bash) and is
 # linked into ~/.zsh/configs/ by install.sh, where the loader below already picks
 # it up. There is deliberately no `if [ "$(uname)" = Darwin ]` in this file: the
 # split is done by which files get linked, not by branching at runtime.

@@ -89,11 +89,12 @@ there.)
 - `shared/config/mise/` — global runtime/tool versions for both machines
 - `macos/` — Brewfile, zprofile, and the Homebrew / gcloud / Android / iCloud
   bits that exist only there
-- `linux/` — `packages.txt`, the Wayland clipboard aliases, and the printer
+- `linux/` — `packages.txt`, the Wayland clipboard functions, and the printer
   setup (`linux/bin/setup-printers.sh`, `linux/cups/lprint-backend`)
 
-`macos/zsh/configs/` and `linux/zsh/configs/` link into the *same*
-`~/.zsh/configs/` as the shared ones, so both halves load through one loader.
+`macos/zsh/configs/` links into the *same* `~/.zsh/configs/` as the shared ones,
+so both halves load through one loader. Linux runs bash, so its per-OS shell
+bits are portable functions in `linux/shell/functions/` instead.
 
 ## Editor
 

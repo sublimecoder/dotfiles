@@ -29,4 +29,4 @@ lprint
 # `pacman -Qo /usr/bin/core_perl/shasum`), which Arch already installs. An
 # earlier version of this file listed `perl-Digest-SHA` -- that is the Debian
 # and Homebrew spelling and `pacman -S` fails with "target not found". The only
-# thing needed on Arch is /usr/bin/core_perl on PATH, which linux.zsh adds.
+# thing needed on Arch is /usr/bin/core_perl on PATH, which /etc/profile.d/perlbin.sh adds.
