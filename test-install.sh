@@ -31,6 +31,9 @@ echo "claude/setup.sh self-check"
 # --- the base file itself ---------------------------------------------------
 chk "base owns no vault keys" "false" "$(jq 'has("skillOverrides") or has("autoMode")' "$BASE")"
 chk "base has no absolute home path" "0" "$(grep -cE '/Users/|/home/' "$BASE")"
+# ~/.gitconfig is a symlink here, so `git config --global` writes this file and
+# expands ~ on the way -- it has twice baked /home/jsmith in, which the Mac lacks.
+chk "gitconfig has no absolute home path" "0" "$(grep -cE '/Users/|/home/' "$HERE/shared/gitconfig")"
 
 # --- fresh machine: no settings.json at all -----------------------------------
 H1="$T/fresh"; mkdir -p "$H1"

@@ -1,6 +1,6 @@
 [init]
 	defaultBranch = main
-	templatedir = /home/jsmith/.git_template
+	templatedir = ~/.git_template
 [push]
   default = current
 [color]

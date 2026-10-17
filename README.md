@@ -1,7 +1,7 @@
 # dotfiles
 
-Personal shell and git config for two machines — a Mac and an Omarchy/Arch box —
-from one repo and one branch.
+Personal shell, editor and git config for a Mac and two Omarchy/Arch machines
+(`charizard`, `squirtle`), from one repo and one branch.
 
 `shared/` is linked everywhere; `macos/` or `linux/` is linked according to
 `uname`. The split is done by *which files get linked*, not by a runtime OS test
@@ -21,7 +21,19 @@ file — it's safe to run repeatedly, and it won't overwrite a real (non-symlink
 file that's already at the destination.
 
 On macOS it also runs `brew bundle` against `macos/Brewfile`. On Linux it
-**reports** anything missing from `linux/packages.txt` and installs nothing.
+**reports** anything missing from `linux/packages.txt` and installs nothing. On
+both it runs `mise install` (global tools from `shared/config/mise/config.toml`)
+and restores the Neovim plugins pinned in `shared/config/nvim/lazy-lock.json`.
+
+Check a machine any time; it changes nothing and exits non-zero on any failure:
+
+```bash
+dotfiles-doctor   # nvim starts clean, EDITOR, omarchy-provision --check, ssh agent, signed commit
+```
+
+`./test-install.sh` is the repo's own self-check: it runs `install.sh` against
+scratch `$HOME`s, offline, with brew/mise/nvim stubbed — including a simulated
+Mac run. Run it before committing a change to `install.sh` or a linked file.
 
 ## Rebuilding an Omarchy machine
 
@@ -56,30 +68,25 @@ installer is run afterwards when present; on a fresh machine pass its remote onc
 AIOS_VAULT_REMOTE=<git url> ~/dotfiles/install.sh
 ```
 
-Check a machine any time (changes nothing):
-
-```bash
-dotfiles-doctor   # nvim starts clean, EDITOR, omarchy-provision --check, ssh agent, signed commit
-```
-
-On a fresh machine, also point git at the commit template:
-
-```bash
-git config --global init.templatedir ~/.git_template
-```
+Do **not** run `git config --global ...` to set anything that belongs in this
+repo: `~/.gitconfig` is a symlink to `shared/gitconfig`, so the command rewrites
+the tracked file and expands `~` into an absolute `/home/...` path the Mac does
+not have. Edit `shared/gitconfig` instead. (`init.templatedir` is already set
+there.)
 
 ## Layout
 
 - `shared/zshrc`, `shared/aliases`, `shared/zshenv` — shell
 - `shared/zsh/` — functions, completions, and config fragments loaded by `zshrc`
-- `shared/config/nvim/` — Neovim: LazyVim with the jellybeans colorscheme, the
-  old vimrc's options and keymaps, and vim-test running in the herdr pane below
-  the editor (`shared/bin/herdr-run-below`). `lazy-lock.json` pins plugin
-  versions; `install.sh` restores them
-- `shared/vimrc`, `shared/vim/` — the old vim config, kept for a trial period
-  on the Mac and then deleted
+- `shared/shellrc` — the portable core (functions, aliases, PATH, `EDITOR`)
+  sourced by both zsh and bash
+- `shared/config/nvim/` — Neovim (LazyVim); see [Editor](#editor)
+- `shared/vimrc`, `shared/vim/` — the old vim config, kept until the LazyVim
+  trial on the Mac is done, then deleted
 - `shared/gitconfig`, `shared/gitmessage`, `shared/git_template/` — git
 - `shared/bin/` — small personal scripts, on `$PATH` via `install.sh`
+  (`dotfiles-doctor`, `herdr-run-below`, the `git-*` helpers)
+- `shared/config/mise/` — global runtime/tool versions for both machines
 - `macos/` — Brewfile, zprofile, and the Homebrew / gcloud / Android / iCloud
   bits that exist only there
 - `linux/` — `packages.txt`, the Wayland clipboard aliases, and the printer
@@ -87,6 +94,43 @@ git config --global init.templatedir ~/.git_template
 
 `macos/zsh/configs/` and `linux/zsh/configs/` link into the *same*
 `~/.zsh/configs/` as the shared ones, so both halves load through one loader.
+
+## Editor
+
+Neovim on both machines (`EDITOR=nvim`, set in `shared/shellrc`), running
+[LazyVim](https://www.lazyvim.org) from `shared/config/nvim/`:
+
+- **Colorscheme:** `nanotech/jellybeans.vim`, the same one the vimrc used — not
+  the Omarchy theme, so `omarchy theme` changes do not touch the editor.
+- **Languages:** LazyVim extras for Elixir, Ruby, TypeScript, JSON and Markdown,
+  plus eslint — they replace the old ALE setup. Go is off until `go` is in
+  `shared/config/mise/config.toml` (the extra installs its tools with
+  `go install`). Language servers download through Mason on the first open of
+  each language, not during `install.sh`.
+- **Tests:** vim-test. Inside herdr it runs in the pane below the editor (the
+  terminal pane of `hdl`), splitting one off if there is none, via
+  `shared/bin/herdr-run-below`; outside herdr, in an nvim terminal split.
+- **Plugin versions:** `lazy-lock.json` is tracked and linked, so `:Lazy update`
+  writes the repo copy — commit it. Other machines pick it up on the next
+  `install.sh` (or `:Lazy restore`).
+
+Keymaps that differ from the old vimrc (LazyVim owns `<leader>s`, `<leader>l`,
+`<leader>f`, `<leader>d` and `<leader>g` as groups):
+
+| Old vimrc | Now |
+|---|---|
+| `<leader>t` / `s` / `l` / `a` / `gt` | `<leader>tt` file, `tr` nearest, `tl` last, `tT` suite, `tv` visit |
+| `K` (grep word) | `K` is LSP hover; grep word is `<leader>sw` |
+| `]r` / `[r` (ALE) | `]d` / `[d` |
+| `,f` (ctags) | `gd` |
+| `<leader>d` todo, `<leader>f` IEx.pry, `<leader>gw` WIP push | dropped (`todo` shell alias still works) |
+
+Kept as they were: `<leader><leader>` (alternate file), `<C-p>` (files), `\`
+(grep), and `.` / `@` over a visual selection.
+
+`install.sh` moves aside (timestamped, kept) any `~/.config/nvim` this repo does
+not own — the Mac's old `init.vim`, or the LazyVim starter a fresh Omarchy
+install copies in as real files — so the linked config can take its place.
 
 ## Printers
 
@@ -129,5 +173,9 @@ installed there and is deliberately absent from `linux/packages.txt`. Nothing is
 `chsh`-ed on either machine. `shared/zsh/` is linked on Linux but simply unused.
 Reasoning, what bash actually costs, and how to reverse it:
 [`docs/shell-decision.md`](docs/shell-decision.md).
+
+`gdm`, `review` and `squash` compare against `git default-branch` — origin's
+default branch, or `main` when `origin/HEAD` is unset (fix that per repo with
+`git remote set-head origin -a`).
 
 If you want to copy any of this, go ahead.
