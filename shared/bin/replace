@@ -1,18 +1,23 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 # Find and replace by a given list of files.
 #
 # replace foo bar **/*.rb
+#
+# The pattern is an extended regex for both rg and sed -E. A "/" in either
+# argument and a "&" in the replacement are taken literally; \1 backrefs work.
 
 find_this="$1"
 shift
 replace_with="$1"
 shift
 
-items=$(rg -l --color never "$find_this" "$@")
+pattern="${find_this//\//\\/}"
+replacement="${replace_with//\//\\/}"
+replacement="${replacement//&/\\&}"
 
-temp="${TMPDIR:-/tmp}/replace_temp_file.$$"
-IFS=$'\n'
-for item in $items; do
-  sed "s/$find_this/$replace_with/g" "$item" > "$temp" && mv "$temp" "$item"
-done
+# In place with a backup suffix: the one -i spelling GNU and BSD sed share. The
+# old temp-file-then-mv dropped the file's mode, so a script lost its +x.
+while IFS= read -r item; do
+  sed -E -i.replace-bak "s/$pattern/$replacement/g" "$item" && rm -f "$item.replace-bak"
+done < <(rg -l --color never "$find_this" "$@")
