@@ -1,10 +1,5 @@
-if [ -d "/opt/homebrew" ]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [ -d "~/.linuxbrew" ]; then
-  eval "$(~/.linuxbrew/bin/brew shellenv)"
-elif [ -d "/home/linuxbrew" ]; then
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-fi
+# Homebrew's shellenv is NOT here: macos/zsh/configs/pre/homebrew.zsh runs it
+# for every interactive shell, and running it here as well put brew on PATH twice.
 
 # Added by OrbStack: command-line tools and integration
 source ~/.orbstack/shell/init.zsh 2>/dev/null || :
