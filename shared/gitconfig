@@ -16,8 +16,11 @@
   l = log --pretty=colored
   dms = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative master..staging
 	br = branch
-  # origin's default branch (main/master), main when origin/HEAD is unset
-  default-branch = "!b=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD) && echo ${b#origin/} || echo main"
+  # origin's default branch (main/master), main when origin/HEAD is unset.
+  # origin/HEAD is set by the remote, and the name lands unquoted in gdm/review/
+  # squash -- so anything git would refuse as a branch name (e.g. a leading "-",
+  # which `git rebase -i` would read as an option) falls back to main.
+  default-branch = "!b=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD) && b=${b#origin/} && git check-ref-format --branch \"$b\" >/dev/null 2>&1 && case $b in -*) false;; esac && echo \"$b\" || echo main"
 [core]
   excludesfile = ~/.gitignore
   autocrlf = input

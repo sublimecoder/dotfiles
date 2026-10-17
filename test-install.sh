@@ -119,6 +119,10 @@ git -C "$G" commit -q --allow-empty --no-gpg-sign -m x
 git -C "$G" update-ref refs/remotes/origin/master HEAD
 git -C "$G" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/master
 chk "default-branch: follows origin/HEAD"   "master" "$(git -C "$G" -c include.path="$HERE/shared/gitconfig" default-branch)"
+# A remote-set origin/HEAD naming an option-like ref must not reach `git rebase -i`.
+git -C "$G" update-ref refs/remotes/origin/--exec=touch HEAD
+git -C "$G" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/--exec=touch
+chk "default-branch: option-like name rejected" "main" "$(git -C "$G" -c include.path="$HERE/shared/gitconfig" default-branch)"
 
 # --- herdr-run-below: reuse the pane below, split one off only when none ------
 R="$T/herdr"; mkdir -p "$R/bin"
