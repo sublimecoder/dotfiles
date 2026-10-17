@@ -82,6 +82,15 @@ chk "chain: mise install skipped offline"   "0" "$(printf '%s' "$out" | grep -c 
 chk "chain: mise tool list linked"          "1" "$([ -L "$H4/.config/mise/config.toml" ] && echo 1 || echo 0)"
 chk "chain: ssh agent env.d linked"         "1" "$([ -L "$H4/.config/environment.d/ssh-agent.conf" ] && echo 1 || echo 0)"
 chk "chain: nvim init.lua linked"           "1" "$([ -L "$H4/.config/nvim/init.lua" ] && echo 1 || echo 0)"
+# A link whose source left the repo is pruned; a broken link elsewhere, and one
+# inside a .git dir, are not ours to touch.
+ln -s "$HERE/shared/zsh/configs/gone.zsh" "$H4/.zsh/configs/gone.zsh"
+ln -s "$T/nowhere" "$H4/.zsh/configs/foreign"
+mkdir -p "$H4/.claude/repo/.git/hooks"; ln -s "$HERE/shared/git_template/hooks/gone" "$H4/.claude/repo/.git/hooks/gone"
+PATH="$T/bin:$PATH" HOME="$H4" DOTFILES_OFFLINE=1 bash "$HERE/install.sh" >/dev/null 2>&1
+chk "prune: repo link with no source removed" "no"  "$([ -L "$H4/.zsh/configs/gone.zsh" ] && echo yes || echo no)"
+chk "prune: foreign broken link kept"        "yes" "$([ -L "$H4/.zsh/configs/foreign" ] && echo yes || echo no)"
+chk "prune: link inside .git kept"           "yes" "$([ -L "$H4/.claude/repo/.git/hooks/gone" ] && echo yes || echo no)"
 chk "chain: nvim lockfile linked"           "1" "$([ -L "$H4/.config/nvim/lazy-lock.json" ] && echo 1 || echo 0)"
 chk "chain: nvim restore skipped offline"   "0" "$(printf '%s' "$out" | grep -c 'STUB-NVIM')"
 # shellrc in bash: EDITOR set, and `v` expands at use rather than being frozen

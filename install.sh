@@ -48,7 +48,9 @@ link_top() {
   done
 }
 
-# Directory trees, mirrored file-by-file under ~/.<dir>/...
+# Directory trees, mirrored file-by-file under ~/.<dir>/... (prune reads it too)
+LINK_SUBS="bin shell zsh vim git_template claude config jcode"
+
 # Both shared/ and the OS dir feed the SAME destinations, which is what lets
 # macos/zsh/configs/macos.zsh sit beside the shared configs at runtime.
 link_tree() {
@@ -57,7 +59,7 @@ link_tree() {
   # ignores ~/.claude/CLAUDE.md and @import, so these carry the AIOS effort table
   # and brain-loading rule into jcode. ~/.jcode/config.toml is NOT here: it is
   # owned by the vault's aios-install.sh, which merges hooks into it.
-  for sub in bin shell zsh vim git_template claude config jcode; do
+  for sub in $LINK_SUBS; do
     [ -d "$dir/$sub" ] || continue
     while IFS= read -r -d '' file; do
       rel="${file#"$dir/$sub"/}"
@@ -96,6 +98,23 @@ link_top  "shared"
 link_tree "shared"
 link_top  "$OS_DIR"
 link_tree "$OS_DIR"
+
+# link() only adds, so a file renamed or deleted here left its link behind
+# (~/.zsh/configs/editor.zsh outlived its source for weeks). Remove only BROKEN
+# links that point INTO this repo; skip .git dirs, whose hooks git copied from
+# the template and which belong to that repo.
+prune() {
+  local l
+  while IFS= read -r -d '' l; do
+    case "$(readlink "$l")" in
+      "$DOTFILES_DIR"/*) rm "$l"; echo "pruned (source gone): $l" ;;
+    esac
+  done < <(find "$@" -name .git -prune -o -xtype l -print0 2>/dev/null)
+}
+prune "$HOME" -maxdepth 1
+for sub in $LINK_SUBS; do
+  [ -d "$HOME/.$sub" ] && prune "$HOME/.$sub"
+done
 
 if [ "$OS_DIR" = "macos" ] && [ "${DOTFILES_OFFLINE:-0}" != 1 ] && command -v brew >/dev/null; then
   brew bundle install --file="$DOTFILES_DIR/macos/Brewfile"
