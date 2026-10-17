@@ -3,6 +3,7 @@
 	templatedir = ~/.git_template
 [push]
   default = current
+  autoSetupRemote = true
 [color]
   ui = auto
 [alias]
@@ -26,17 +27,30 @@
   autocrlf = input
 [merge]
   ff = only
+  conflictStyle = zdiff3
 [commit]
   template = ~/.gitmessage
+  verbose = true
 	gpgsign = true
 [fetch]
   prune = true
+  pruneTags = true
 [rebase]
   autosquash = true
+  autoStash = true
+  updateRefs = true
 [diff]
   colorMoved = zebra
+  algorithm = histogram
+[rerere]
+  enabled = true
+[branch]
+  sort = -committerdate
+[tag]
+  sort = version:refname
+[help]
+  autocorrect = prompt
 [gpg]
-	program = gpg2
 	format = ssh
 [pretty]
   colored = format:%Cred%h%Creset %s %Cgreen(%cr) %C(bold blue)%an%Creset
