@@ -51,6 +51,22 @@ merge_settings() {
   echo "merged settings.base.json into $target"
 }
 
+# Hook scripts tracked in claude/hooks/ are linked into ~/.claude/hooks/. A
+# regular file there with identical content (a hand-copied one) is replaced by
+# the link; a DIFFERENT local file is kept and reported, never overwritten.
+link_hooks() {
+  local src dst
+  mkdir -p "$CLAUDE_HOME/hooks"
+  for src in "$HERE/hooks"/*; do
+    [ -f "$src" ] || continue
+    dst="$CLAUDE_HOME/hooks/$(basename "$src")"
+    if [ -f "$dst" ] && [ ! -L "$dst" ]; then
+      if cmp -s "$src" "$dst"; then rm -f "$dst"; else echo "kept local $dst (differs from $src)"; continue; fi
+    fi
+    [ -e "$dst" ] || [ -L "$dst" ] || ln -s "$src" "$dst"
+  done
+}
+
 install_plugins() {
   local name repo plugin known="$CLAUDE_HOME/plugins/known_marketplaces.json" installed="$CLAUDE_HOME/plugins/installed_plugins.json"
   if ! command -v claude >/dev/null; then echo "MISSING claude -- skipped plugins"; return 0; fi
@@ -122,8 +138,10 @@ wire_integrations() {
     graphify install --platform claude
   fi
   # rtk's binary comes from macos/Brewfile or the mise tool list (Linux); its
-  # Claude hook is the `rtk hook claude` command in settings.base.json, and
-  # RTK.md is tracked in shared/claude/. `rtk init -g`
+  # Claude hook in settings.base.json runs claude/hooks/rtk-hook.sh (linked by
+  # link_hooks), which skips the rewrite for git in .claude/worktrees/ sessions
+  # -- Claude Code refuses `rtk git ...` there -- and otherwise runs
+  # `rtk hook claude`. RTK.md is tracked in shared/claude/. `rtk init -g`
   # is deliberately NOT run -- it appends to CLAUDE.md, which is a linked file here.
   for c in rtk graphify herdr bun npx; do
     command -v "$c" >/dev/null || echo "MISSING $c (optional; the hook or skill that needs it stays inert)"
@@ -132,8 +150,10 @@ wire_integrations() {
 
 if [ "$OFFLINE" = 1 ]; then
   echo "DOTFILES_OFFLINE=1 -- skipped plugins, skills, integrations"
+  link_hooks
   merge_settings
 else
+  link_hooks
   install_plugins
   install_skills
   wire_integrations

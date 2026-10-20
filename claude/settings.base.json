@@ -20,7 +20,7 @@
       {
         "matcher": "Bash",
         "hooks": [{ "type": "command",
-          "command": "command -v rtk >/dev/null 2>&1 || exit 0; exec rtk hook claude" }]
+          "command": "f=\"$HOME/.claude/hooks/rtk-hook.sh\"; [ -x \"$f\" ] && exec \"$f\"; command -v rtk >/dev/null 2>&1 || exit 0; exec rtk hook claude" }]
       }
     ],
     "PostToolUse": [
