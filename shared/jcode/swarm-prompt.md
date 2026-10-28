@@ -15,11 +15,13 @@ it means any organization in the work layer, of which there may be more than one
 | Task type | Effort | Model | ID |
 |---|---|---|---|
 | **Default — everything not routed elsewhere** | high | **Opus 5.5** | `claude-opus-5-5` |
-| Hardest judgment calls: irreversible, published, security- or money-critical, cross-layer | xhigh | Fable 5.1 | `claude-fable-5-1` |
+| Hardest judgment calls: irreversible, published, security- or money-critical, cross-layer | xhigh | Opus 5.5 | `claude-opus-5-5` |
 | Mid-weight drafting / analysis / bulk edits in a subagent | medium | Sonnet 5.5 | `claude-sonnet-5-5` |
 | Mechanical scans, greps, per-item grunt work | low | Haiku 5.5 | `claude-haiku-5-5` |
 
 *Effort* = reasoning-effort dial (low/medium/high/xhigh/max) to set per dispatch.
+
+**Favor Opus; never Fable (2026-10-28).** Opus 5.5 is the default and the escalation tier — never route to Fable. Step down to Sonnet/Haiku only for rote work that needs no extra judgment (ingest, graph scouting, scans); "faster" alone is not a reason.
 
 **Dispatch rules**
 - Pick the row by **task type**, not by how large the task feels. A big mechanical

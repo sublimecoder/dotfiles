@@ -16,16 +16,18 @@ the work layer, of which there may be more than one.
 | Task type | Effort | Model | ID |
 |---|---|---|---|
 | **Default — everything not routed elsewhere** | high | **Opus 5.5** | `claude-opus-5-5` |
-| Hardest judgment calls: irreversible, published, security- or money-critical, cross-layer | xhigh | Fable 5.1 | `claude-fable-5-1` |
-| Mid-weight drafting / analysis / bulk edits in a subagent | medium | Sonnet 5.5 | `claude-sonnet-5-5` |
-| Mechanical scans, greps, per-item grunt work | low | Haiku 5.5 | `claude-haiku-5-5` |
+| Hardest judgment calls: irreversible, published, security- or money-critical, cross-layer | xhigh | Opus 5.5 | `claude-opus-5-5` |
+| Mid-weight drafting / analysis / bulk edits in a subagent | medium | Opus 5.5 | `claude-opus-5-5` |
+| Mechanical scans, greps, per-item grunt work | low | Opus 5.5 | `claude-opus-5-5` |
 
 *Effort* = reasoning-effort dial (low/medium/high/xhigh/max) to set per Agent/Workflow dispatch.
 
+**Opus only (2026-10-28).** Every row runs Opus 5.5 — never route to Fable, Sonnet or Haiku, not for escalation, cost or speed. Need it faster? Lower the *effort*, not the model.
+
 **Default is set once, globally.** `~/.claude/settings.json` carries `"model": "opus[1m]"`
 (latest Opus, 1M-context variant) and `"effortLevel": "high"`. No repo `.claude/settings.json`
-pins a model — they all inherit. Escalation to Fable and downgrades to Sonnet/Haiku are
-per-dispatch decisions off this table, not per-repo config.
+pins a model — they all inherit. Effort is the per-dispatch
+decision off this table; the model never changes.
 
 Bindings: `.claude/agents/*.md` frontmatter carries `model:` + `effort:` per this table
 (family aliases `opus`/`sonnet`/`haiku` resolve to the latest of that family); portable
