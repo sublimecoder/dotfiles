@@ -21,6 +21,11 @@
         "matcher": "Bash",
         "hooks": [{ "type": "command",
           "command": "f=\"$HOME/.claude/hooks/rtk-hook.sh\"; [ -x \"$f\" ] && exec \"$f\"; command -v rtk >/dev/null 2>&1 || exit 0; exec rtk hook claude" }]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command",
+          "command": "f=\"$HOME/.claude/hooks/no-heavy-tmp.sh\"; [ -x \"$f\" ] || exit 0; exec \"$f\"" }]
       }
     ],
     "PostToolUse": [
