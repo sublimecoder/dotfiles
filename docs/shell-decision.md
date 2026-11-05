@@ -36,9 +36,8 @@ Small, and worth knowing precisely rather than guessing:
 | | Portable to bash? |
 |---|---|
 | `zsh/functions/g` | **Yes**, unmodified |
-| 59 of 63 aliases | **Yes** |
+| 61 of 64 aliases | **Yes** |
 | `alias -g G/L/M` (3) | No — zsh global aliases have no bash equivalent |
-| `alias -- -="cd -"` | No — bash cannot alias `-` |
 | `zsh/configs/*` | No — prompt, completion, keybindings, history options |
 | `zsh/completion/*` | No |
 
@@ -83,8 +82,8 @@ Closed 2026-09-05. The split that matters is **portable vs not**, not zsh vs bas
   `direnv` / `mise` / `go` / `bun` / `fzf`.
 - `shared/zsh/` — only what is genuinely zsh: `change-extension` (uses
   `foreach` and glob qualifiers), the completions, and `zsh/configs/*`.
-- `shared/aliases` — one file for both shells; the 4 zsh-only lines
-  (`alias -g G/L/M`, `alias -- -`) are wrapped in `if [ -n "$ZSH_VERSION" ]`.
+- `shared/aliases` — one file for both shells; the 3 zsh-only lines
+  (`alias -g G/L/M`) are wrapped in `if [ -n "$ZSH_VERSION" ]`.
 
 `~/.bashrc` is a real file on Omarchy with machine-local content (cargo,
 gcloud), so `install.sh` **appends** one source line rather than symlinking over

@@ -4,7 +4,7 @@
 # docs/shell-decision.md), and for a while that meant this repo's tooling reached
 # only one of them. It did not have to: `g` -- 1100 invocations, the most-used
 # thing here -- is `if [[ $# -gt 0 ]]; then git "$@"; else git status; fi`, which
-# is as valid in bash as in zsh. 59 of 63 aliases are likewise portable.
+# is as valid in bash as in zsh. 61 of 64 aliases are likewise portable.
 #
 # So the split is not zsh-vs-bash, it is PORTABLE-vs-NOT. This file is the
 # portable half. zsh-only things stay in ~/.zsh/ and are loaded by zshrc alone.
